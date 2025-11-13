@@ -1,0 +1,458 @@
+@page {
+    margin: 10mm;
+    size: A4 landscape;
+}
+
+/* Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "MS Gothic", "Yu Gothic", sans-serif;
+    font-size: 14px;
+    padding: 0;
+}
+
+.rirekisho-container {
+    background: #fff;
+    display: flex;
+    gap: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+    background-color: white;
+}
+
+.page {
+    flex: 1;
+    background: white;
+    padding: 12px;
+    /* border: 2px solid #000; */
+    min-height: auto;
+}
+
+.page-left,
+.page-right {
+    position: relative;
+}
+.page-heading {
+    display: flex;
+    align-items: end;
+    font-weight: 100;
+    max-width: 70%;
+    justify-content: space-between;
+}
+
+/* タイトル */
+.title {
+    font-size: 32px;
+    font-weight: bold;
+    text-align: center;
+    font-weight: 100;
+    letter-spacing: 8px;
+}
+
+/* 日付セクション */
+.date-section {
+    display: flex;
+    justify-content: space-between;
+
+    padding: 5px 0;
+}
+
+.date-label {
+    font-size: 14px;
+}
+
+.note-box {
+    position: absolute;
+    border: 1px dotted #000;
+    padding: 8px;
+    font-size: 10px;
+    width: 120px;
+    height: 140px;
+    text-align: center;
+    right: 40px;
+    top: 30px;
+}
+
+.note-box p {
+    margin: 3px 0;
+}
+
+.user-name-section {
+    width: 70%;
+    border: 1px solid #333;
+}
+.furigana {
+    font-size: 9px;
+    border-bottom: 1px solid #333;
+}
+
+.name-label {
+    height: 80px;
+    font-size: 12px;
+}
+.birth {
+    border: 1px solid #333;
+    display: flex;
+    font-size: 12px;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+}
+
+.gender {
+    font-size: 12px;
+}
+
+.birth-wrapper {
+    width: 70%;
+    border-right: 1px solid #333;
+}
+
+.address-section,
+.contact-address-section {
+    border: 1px solid #333;
+    display: flex;
+}
+.address-section-wrapper,
+.contact-address-section-wrapper {
+    width: 80%;
+}
+
+.address-furigana,
+.contact-address-furigana {
+    font-size: 9px;
+    font-weight: bold;
+    border-bottom: 1px solid #333;
+    padding-left: 10px;
+}
+
+.address-detail,
+.contact-address-detail {
+    font-size: 9px;
+    height: 60px;
+    line-height: 20px;
+    padding: 5px 10px;
+}
+.contact-address-section {
+    display: flex;
+}
+.address-label,
+.contact-address-label {
+}
+.phone-label {
+    font-size: 12px;
+    width: 20%;
+    border-left: 1px solid #333;
+    padding: 4px;
+}
+.email-label {
+    width: 100%;
+    font-size: 12px;
+    border: 1px solid #333;
+    font-size: 9px;
+}
+.email-value {
+    font-size: 14px;
+    width: 100%;
+    height: 60px;
+    border: 1px solid #333;
+    margin-bottom: 10px;
+    text-align: center;
+    height: 60px;
+}
+
+/* テーブル共通スタイル */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    /* margin-bottom: 10px; */
+}
+
+td,
+th {
+    border: 1px solid #000;
+    padding: 6px;
+    font-size: 15px;
+}
+
+.label-cell {
+    /* background-color: #f5f5f5; */
+    font-weight: bold;
+    width: 100px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.small-label {
+    font-size: 11px;
+    padding: 4px;
+}
+
+.value-cell {
+    padding: 8px;
+    min-height: 40px;
+}
+
+/* 基本情報テーブル */
+.info-table {
+    margin-bottom: 0;
+}
+
+.name-cell {
+    font-size: 20px;
+    height: 86px;
+}
+
+.photo-cell {
+    width: 120px;
+    border: 1px solid #000;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.photo-area {
+    width: 100%;
+    height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f9f9f9;
+    font-size: 14px;
+    color: #999;
+}
+
+/* 生年月日テーブル */
+.birth-table {
+    margin-bottom: 0;
+}
+
+.birth-value {
+    width: 60%;
+}
+.furigana-value {
+    font-size: 12px;
+    text-align: center;
+}
+.gender-label {
+    background-color: #f5f5f5;
+    font-weight: bold;
+    width: 15%;
+    text-align: center;
+    margin-left: 10px;
+}
+.name-value {
+    font-size: 18px;
+    text-align: center;
+}
+.address-value {
+    text-align: center;
+    font-size: 14px;
+}
+
+/* 住所テーブル */
+.address-table,
+.contact-table {
+    margin-bottom: 10px;
+}
+
+.detail-label {
+    background-color: #f5f5f5;
+    font-weight: bold;
+    width: 80px;
+    text-align: center;
+    border: 1px solid #000;
+}
+
+.value-cell-small {
+    width: 150px;
+    border: 1px solid #000;
+}
+
+.address-note {
+    font-size: 11px;
+}
+
+/* 学歴・職歴テーブル */
+.history-table,
+.history-table-right {
+    /* margin-bottom: 10px; */
+}
+
+.year-header,
+.month-header {
+    background-color: #f5f5f5;
+    font-weight: bold;
+    text-align: center;
+    padding: 6px;
+    font-size: 12px;
+}
+
+.year-header {
+    width: 60px;
+}
+
+.month-header {
+    width: 50px;
+}
+
+.history-header,
+.license-header {
+    background-color: #f5f5f5;
+    font-weight: bold;
+    text-align: center;
+    padding: 6px;
+    font-size: 12px;
+}
+
+.history-table tr td,
+.history-table-right tr td,
+.license-table tr td {
+    height: 30px;
+    vertical-align: top;
+    padding: 5px;
+}
+
+/* 注記 */
+.note {
+    font-size: 10px;
+    margin-top: 5px;
+    padding-left: 5px;
+}
+
+/* 免許・資格テーブル */
+.license-table {
+    margin-bottom: 15px;
+}
+
+/* 志望動機セクション */
+.motivation-section {
+    margin-bottom: 15px;
+}
+
+.section-header {
+    background-color: #f5f5f5;
+    border: 1px solid #000;
+    padding: 8px;
+    font-size: 11px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.content-area {
+    border: 1px solid #000;
+    border-top: none;
+    min-height: 200px;
+    padding: 10px;
+}
+
+/* 本人希望欄 */
+.request-section {
+    margin-top: 15px;
+}
+
+.request-area {
+    border: 1px solid #000;
+    border-top: none;
+}
+
+.request-row {
+    border-bottom: 1px solid #000;
+    /* Use min-height instead of fixed height to avoid forcing overflow */
+    min-height: 168px;
+    padding: 8px;
+    /* Avoid breaking this block across pages */
+    page-break-inside: avoid;
+}
+
+.request-row:last-child {
+    border-bottom: none;
+}
+
+/* 印刷時の調整 */
+@media print {
+    body {
+        background-color: white;
+        padding: 0;
+    }
+
+    .rirekisho-container {
+        gap: 0;
+    }
+
+    /* Hide page borders in printed PDF to avoid fragments on next page */
+    .page {
+        border: none;
+        page-break-after: avoid;
+    }
+
+    .page-right {
+        page-break-before: avoid;
+    }
+
+    /* Try to avoid breaking tables across pages */
+    table,
+    tr {
+        page-break-inside: avoid;
+    }
+}
+
+/* '以上' マーカーを右寄せする */
+.marker {
+    text-align: right;
+}
+.history-table td .cell-content.filled,
+.history-table-right td .cell-content.filled,
+.license-table td .cell-content.filled {
+    text-align: center;
+}
+
+/* 印刷ボタンのスタイル（画面上でのみ表示） */
+.print-button {
+    background: #007bff;
+    color: #fff;
+    border: none;
+    padding: 23px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    display: inline-block;
+    text-decoration: none;
+    line-height: 1;
+}
+
+/* Slightly different visual for PDF-only link if needed */
+.print-button.pdf-only {
+    /* keep same background but make it a bit more rounded and slightly larger */
+    padding: 18px;
+    border-radius: 10px;
+}
+
+/* Hover: slight color inversion and subtle lift for affordance */
+.print-button {
+    transition: background-color 140ms ease, transform 140ms ease,
+        filter 140ms ease;
+}
+.print-button:hover,
+.print-button:focus {
+    transform: translateY(-1px);
+    /* small invert to give a '反転' feel without breaking colors */
+    filter: brightness(0.95) saturate(1.02) contrast(0.98) invert(0.03);
+    outline: none;
+}
+
+/* Make the effect slightly stronger for the pdf-only variant */
+.print-button.pdf-only:hover,
+.print-button.pdf-only:focus {
+    filter: brightness(0.92) saturate(1.03) contrast(0.98) invert(0.04);
+}
+
+@media print {
+    .print-button {
+        display: none !important;
+    }
+}

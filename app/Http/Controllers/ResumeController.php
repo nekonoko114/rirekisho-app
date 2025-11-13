@@ -26,7 +26,8 @@ class ResumeController extends Controller
         $query = Resume::withCount(['histories','licenses'])->orderBy('id','desc');
 
         // If user is not admin, limit to their own resumes
-        if (! ($user && method_exists($user, 'isAdmin') && $user->isAdmin())) {
+        $isAdminUser = ($user && method_exists($user, 'isAdmin') && $user->isAdmin());
+        if (! $isAdminUser) {
             $query->where('user_id', $user->id);
         }
 
@@ -264,7 +265,10 @@ class ResumeController extends Controller
         // - logged-in admin
         // - or public token matches for guest-created resumes
         if ($user) {
-            if ($resume->user_id && ($resume->user_id === $user->id || (method_exists($user, 'isAdmin') && $user->isAdmin()))) {
+            // Allow if owner or admin. Note: allow admin even if resume->user_id is null (guest-created resumes).
+            $isOwner = ($resume->user_id && $resume->user_id === $user->id);
+            $isAdmin = (method_exists($user, 'isAdmin') && $user->isAdmin());
+            if ($isOwner || $isAdmin) {
                 return view('resume.show', compact('resume'));
             }
             // logged-in but not owner/admin -> forbidden
@@ -290,9 +294,10 @@ class ResumeController extends Controller
         $token = request()->query('token');
 
         if ($user) {
-            if ($resume->user_id && ($resume->user_id === $user->id || (method_exists($user, 'isAdmin') && $user->isAdmin()))) {
-                // allowed
-            } else {
+            // Allow owner or admin (admin allowed even for guest-created resumes)
+            $isOwner = ($resume->user_id && $resume->user_id === $user->id);
+            $isAdmin = (method_exists($user, 'isAdmin') && $user->isAdmin());
+            if (! ($isOwner || $isAdmin)) {
                 abort(403, 'この履歴書を表示する権限がありません');
             }
         } else {
@@ -419,7 +424,9 @@ class ResumeController extends Controller
 
         // authorization: only owner or admin may update
         $user = $request->user();
-        if (! ($user && (($resume->user_id && $resume->user_id === $user->id) || (method_exists($user, 'isAdmin') && $user->isAdmin())))) {
+        $isOwner = ($user && $resume->user_id && $resume->user_id === $user->id);
+        $isAdmin = ($user && method_exists($user, 'isAdmin') && $user->isAdmin());
+        if (! ($isOwner || $isAdmin)) {
             abort(403, 'この履歴書を更新する権限がありません');
         }
 
@@ -480,7 +487,9 @@ class ResumeController extends Controller
     public function destroy(Resume $resume)
     {
         $user = Auth::user();
-        if (! ($user && (($resume->user_id && $resume->user_id === $user->id) || (method_exists($user, 'isAdmin') && $user->isAdmin())))) {
+        $isOwner = ($user && $resume->user_id && $resume->user_id === $user->id);
+        $isAdmin = ($user && method_exists($user, 'isAdmin') && $user->isAdmin());
+        if (! ($isOwner || $isAdmin)) {
             abort(403, 'この履歴書を削除する権限がありません');
         }
 

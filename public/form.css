@@ -1,0 +1,47 @@
+/* increased border widths for better visibility */
+.photo-preview {
+    max-width: 140px;
+    max-height: 180px;
+    object-fit: cover;
+    border: 2px solid #bfbfbf;
+}
+.form-section {
+    margin-bottom: 1.25rem;
+}
+.required::after {
+    content: " *";
+    color: #d9534f;
+}
+/* make inputs, selects and cards have slightly thicker borders */
+.form-control,
+.form-select {
+    border-width: 1.5px !important;
+    border-color: #bfbfbf !important;
+}
+.card {
+    border: 1.5px solid #bfbfbf !important;
+}
+/* layout tweak: make select controls compact and text columns expand to fill space */
+.input-group > .form-select,
+.input-group > .era-year-select {
+    flex: 0 0 92px; /* compact select */
+    max-width: 92px;
+}
+/* make era select slightly wider so 元号 is readable */
+.input-group > .era-select {
+    flex: 0 0 140px; /* wider for era label */
+    max-width: 140px;
+}
+.input-group > .form-control[data-type="description"],
+.input-group > .form-control[data-type="name"],
+.input-group > .form-control[data-type="details"] {
+    flex: 1 1 300px; /* allow description columns to grow and be widest */
+    min-width: 180px;
+}
+.input-group > .btn {
+    flex: 0 0 40px; /* small remove button */
+}
+/* Slightly bolder button outline when focused for accessibility */
+.btn:focus {
+    box-shadow: 0 0 0 0.25rem rgba(11, 84, 175, 0.12) !important;
+}

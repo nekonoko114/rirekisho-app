@@ -1,0 +1,559 @@
+@page {
+    size: A3;
+    margin: 20mm;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "MS Gothic", "Yu Gothic", sans-serif;
+    background: #f3f4f6;
+    padding: 20px;
+}
+
+.rirekisho-container {
+    background: #fff;
+    display: flex;
+    gap: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+    background-color: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* make container positioned so children z-index works */
+.rirekisho-container {
+    position: relative;
+}
+
+.page {
+    flex: 1;
+    background: white;
+    padding: 30px;
+    min-height: 1000px;
+}
+
+/* ensure pages sit below interactive controls */
+.page {
+    z-index: 1;
+}
+
+.page-left,
+.page-right {
+    position: relative;
+}
+.page-heading {
+    display: flex;
+    align-items: end;
+    font-weight: 100;
+    max-width: 70%;
+    justify-content: space-between;
+}
+
+.title {
+    font-size: 28px;
+    text-align: center;
+    font-weight: 100;
+    letter-spacing: 8px;
+}
+
+.date-section {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+}
+
+.date-label {
+    font-size: 14px;
+}
+
+.note-box {
+    position: absolute;
+    border: 1px dotted #000;
+    padding: 8px;
+    font-size: 10px;
+    width: 120px;
+    height: 140px;
+    text-align: center;
+    right: 40px;
+    top: 75px;
+}
+
+/* note box is decorative and must not block clicks */
+.note-box {
+    pointer-events: none;
+    z-index: 2;
+}
+
+.note-box p {
+    margin: 3px 0;
+}
+
+.user-name-section {
+    width: 70%;
+    border: 1px solid #333;
+}
+.furigana {
+    font-size: 13px;
+    border-bottom: 1px solid #333;
+    padding: 6px;
+}
+.furigana,
+.furigana-value,
+.furigana-label {
+}
+.furigana-value {
+    font-size: 14px;
+    text-align: center;
+}
+.name-label {
+    height: 80px;
+    font-size: 13px;
+    padding: 6px;
+}
+.name-label .name-value {
+    font-size: 24px;
+    text-align: center;
+    line-height: 1.05;
+}
+.name-label .name-label-text {
+    font-size: 13px;
+}
+.birth {
+    border: 1px solid #333;
+    display: flex;
+    font-size: 13px;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+}
+.gender {
+    font-size: 13px;
+}
+.birth-wrapper {
+    width: 70%;
+    border-right: 1px solid #333;
+}
+.birth-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+.birth-date {
+    font-size: 10px;
+}
+.age {
+    font-size: 14px;
+}
+
+.address-section,
+.contact-address-section {
+    border: 1px solid #333;
+    display: flex;
+    margin-top: 10px;
+}
+.address-section-wrapper,
+.contact-address-section-wrapper {
+    width: 80%;
+}
+.address-furigana,
+.contact-address-furigana {
+    font-size: 13px;
+
+    border-bottom: 1px solid #333;
+    padding-left: 10px;
+}
+.address-detail,
+.contact-address-detail {
+    font-size: 18px;
+    height: 60px;
+    line-height: 20px;
+    padding: 5px 10px;
+}
+.phone-label {
+    font-size: 13px;
+    width: 20%;
+    border-left: 1px solid #333;
+    padding: 6px;
+}
+.email-label {
+    width: 100%;
+    font-size: 13px;
+    border: 1px solid #333;
+    font-size: 13px;
+    padding: 6px;
+}
+.email-value {
+    font-size: 18px;
+    width: 100%;
+    height: 60px;
+    border: 1px solid #333;
+    margin-bottom: 10px;
+    padding: 6px;
+    text-align: center;
+    line-height: 40px;
+}
+
+/* tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+td,
+th {
+    border: 1px solid #000;
+    padding: 8px;
+    font-size: 13px;
+}
+.year-header,
+.month-header {
+    background-color: #f5f5f5;
+    /* font-weight: bold; */
+    text-align: center;
+    padding: 6px;
+    font-size: 13px;
+}
+.year-header {
+    width: 60px;
+}
+.month-header {
+    width: 50px;
+}
+.history-header,
+.license-header {
+    background-color: #f5f5f5;
+
+    text-align: center;
+    padding: 6px;
+    font-size: 18px;
+    font-weight: normal;
+}
+.history-table tr td,
+.history-table-right tr td,
+.license-table tr td {
+    height: 30px;
+    vertical-align: top;
+    padding: 5px;
+    text-align: center;
+    font-size: 15px;
+}
+
+/* form helpers */
+.input-inline {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    padding: 4px;
+    font-size: 15px;
+}
+.small-input {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    padding: 4px;
+    font-size: 13px;
+}
+textarea.input-area {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    padding: 6px;
+    min-height: 30px;
+    resize: vertical;
+}
+/* Ensure form controls are interactive and visible */
+input[type="text"],
+input[type="email"],
+input[type="date"],
+input[type="file"],
+input[type="number"],
+select,
+textarea {
+    background: #fff;
+    border: 1px solid #cfcfcf;
+    padding: 6px 8px;
+    font-size: 13px;
+    color: #111;
+    border-radius: 2px;
+    outline: none;
+    box-shadow: none;
+    -webkit-appearance: none;
+    appearance: none;
+    position: relative;
+    z-index: 1000; /* ensure inputs sit above decorative elements */
+    pointer-events: auto;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: #6ea8fe;
+    box-shadow: 0 0 0 3px rgba(513, 130, 246, 0.12);
+}
+.resume-form .input-group > select.form-select.era-select,
+.resume-form .input-group > select.era-select.form-select {
+    /* 元号セレクトは少し広めにして文字が切れないように */
+    flex: 0 0 84px;
+    max-width: 84px;
+    font-size: 12px;
+    padding: 4px 6px;
+    height: 36px;
+    line-height: 1.2;
+}
+.resume-form .input-group > select.form-select.era-year-select {
+    /* 年セレクトをコンパクトに */
+    flex: 0 0 64px;
+    max-width: 64px;
+    font-size: 12px;
+    padding: 4px 6px;
+    height: 36px;
+}
+.resume-form .input-group > select.form-select[data-type="month"],
+.resume-form .input-group > select[data-type="month"].form-select {
+    /* 月セレクトはさらにコンパクト */
+    flex: 0 0 56px;
+    max-width: 56px;
+    font-size: 12px;
+    padding: 4px 6px;
+    height: 36px;
+}
+.resume-form .input-group > .btn {
+    flex: 0 0 36px;
+    padding: 4px 6px;
+}
+.resume-form .input-group > .form-control[data-type="description"],
+.resume-form .input-group > .form-control[data-type="name"],
+.resume-form .input-group > .form-control[data-type="details"] {
+    /* 説明列は残して広げる */
+    flex: 1 1 auto;
+    min-width: 120px;
+}
+
+/* fallback stronger rules if bootstrap specificity overrides earlier rules */
+.resume-form .input-group select.era-select.form-select,
+.resume-form .input-group select.era-year-select.form-select,
+.resume-form .input-group select.form-select[data-type="month"] {
+    box-sizing: border-box;
+}
+.btn {
+    display: inline-block;
+    padding: 6px 10px;
+    background: #2b6cb0;
+    color: #fff;
+    border-radius: 4px;
+    text-decoration: none;
+}
+
+.section-header {
+    background-color: #f5f5f5;
+    border: 1px solid #000;
+    padding: 8px;
+    font-size: 13px;
+
+    text-align: center;
+}
+.content-area {
+    border: 1px solid #000;
+    min-height: 320px;
+    padding: 10px;
+    font-size: 18px;
+}
+
+/* 本人希望欄の枠と内部スタイル（public CSS に追加） */
+.request-box {
+    border: 1.5px solid #000;
+    background: #fff;
+    box-sizing: border-box;
+    position: relative;
+    overflow: visible;
+    z-index: 2;
+}
+
+.request-box .section-header {
+    border: none;
+    border-bottom: 1px solid #000;
+    margin: 0;
+    background-color: #f5f5f5;
+}
+
+.request-area {
+    padding: 10px;
+    border-top: none;
+    height: 130px;
+}
+
+.request-row {
+    /* border-bottom: 1px solid #000; */
+    min-height: 70px;
+    padding: 10px;
+    font-size: 18px;
+}
+
+/* 性別、生年月日の表示補助 */
+.gender-block {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-left: 8px;
+}
+.gender-label {
+    font-size: 13px;
+}
+.gender-value {
+    font-size: 13px;
+}
+.birth-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.birth-date,
+.age {
+    font-size: 13px;
+}
+svg {
+    width: 24px;
+}
+
+@media print {
+    body {
+        background-color: white;
+        padding: 0;
+    }
+    .rirekisho-container {
+        gap: 0;
+    }
+    .page {
+        border: 1px solid #000;
+        page-break-after: always;
+    }
+    .page-right {
+        page-break-before: always;
+    }
+}
+
+/* Pagination size tweaks: make bootstrap pagination buttons smaller and less tall */
+.pagination {
+    margin: 0;
+}
+.pagination .page-link,
+.pagination .page-item span,
+.pagination .page-item .page-link {
+    padding: 0.2rem 0.45rem;
+    font-size: 0.85rem;
+    line-height: 1;
+    min-width: 0;
+    border-radius: 3px;
+}
+.pagination .page-item.active .page-link {
+    padding: 0.2rem 0.45rem;
+    font-size: 0.85rem;
+}
+
+/* Reduce spacing around pagination controls when used in card footers */
+.card .pagination {
+    margin: 0.25rem 0;
+}
+
+/* Stronger pagination rules to override global link styles and ensure compact buttons */
+nav .pagination,
+.pagination {
+    display: flex;
+    list-style: none;
+    padding-left: 0;
+    gap: 6px;
+    align-items: center;
+}
+.pagination li {
+    display: inline-block;
+}
+.pagination a,
+.pagination .page-link {
+    display: inline-block;
+    padding: 0.25rem 0.45rem;
+    font-size: 0.85rem;
+    line-height: 1;
+    color: #0d6efd;
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    text-decoration: none;
+    min-width: 0;
+}
+.pagination a:hover,
+.pagination .page-link:hover {
+    background-color: #e9f5ff;
+    text-decoration: none;
+    color: #0d6efd;
+}
+.pagination .active .page-link,
+.pagination li.active a {
+    background-color: #0d6efd;
+    color: #fff;
+    border-color: #0d6efd;
+}
+.pagination .disabled .page-link,
+.pagination li.disabled a {
+    color: #6c757d;
+    pointer-events: none;
+    background-color: #fff;
+    border-color: #dee2e6;
+}
+
+/* If simple text links are rendered (e.g. "« Previous" / "Next »"), ensure they are compact */
+.pagination > a,
+.pagination > li > a {
+    padding: 0.25rem 0.45rem;
+    font-size: 0.85rem;
+}
+
+svg {
+    width: 24px !important;
+}
+
+/* Compact select sizes for era / year / month in create/edit forms */
+.era-select,
+.era-year-select,
+select[data-type="month"],
+.education-row .era-select,
+.work-row .era-select,
+.license-row .era-select {
+    flex: 0 0 110px !important;
+    max-width: 110px !important;
+    padding: 0.12rem 0.35rem !important;
+    font-size: 12px !important;
+    line-height: 1.1 !important;
+}
+.era-year-select {
+    flex: 0 0 64px !important;
+    max-width: 64px !important;
+    padding: 0.12rem 0.35rem !important;
+    font-size: 12px !important;
+}
+select[data-type="month"] {
+    flex: 0 0 56px !important;
+    max-width: 56px !important;
+    padding: 0.12rem 0.3rem !important;
+    font-size: 12px !important;
+}
+
+/* smaller selects on very small screens */
+@media (max-width: 576px) {
+    .era-select {
+        flex: 0 0 90px !important;
+        max-width: 90px !important;
+    }
+    .era-year-select {
+        flex: 0 0 56px !important;
+        max-width: 56px !important;
+    }
+    select[data-type="month"] {
+        flex: 0 0 48px !important;
+        max-width: 48px !important;
+    }
+}
