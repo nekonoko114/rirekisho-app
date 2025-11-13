@@ -309,24 +309,41 @@ class ResumeController extends Controller
         // Render the same view but instruct it we're rendering for PDF (disable print button)
         $html = view('resume.show', ['resume' => $resume, 'forPdf' => true])->render();
 
-        if (! app()->bound('snappy.pdf')) {
-            // Snappy not installed — inform user and offer HTML preview fallback
-            return response($html);
+        // Prefer Snappy if fully available (bindings present and Knp class exists)
+        try {
+            $useSnappy = app()->bound('snappy.pdf') && class_exists('\Knp\\Snappy\\Pdf');
+        } catch (\Throwable $e) {
+            $useSnappy = false;
         }
 
-        // Use the wrapper binding which provides convenience methods like loadHTML()
+        if ($useSnappy) {
+            try {
+                $pdf = app('snappy.pdf.wrapper')->loadHTML($html);
+                $filename = 'resume-' . $resume->id . '.pdf';
+
+                return response($pdf->output(), 200, [
+                    'Content-Type' => 'application/pdf',
+                    'Content-Disposition' => 'inline; filename="' . $filename . '"',
+                ]);
+            } catch (\Throwable $e) {
+                Log::error('PDF generation (snappy) failed for resume ' . $resume->id . ': ' . $e->getMessage());
+                // fall through to fallback generator
+            }
+        }
+
+        // Fallback: use local PdfGenerator (direct wkhtmltopdf call)
         try {
-            $pdf = app('snappy.pdf.wrapper')->loadHTML($html);
+            $generator = new \App\Services\PdfGenerator();
+            $pdfContent = $generator->outputFromHtml($html);
             $filename = 'resume-' . $resume->id . '.pdf';
 
-            return response($pdf->output(), 200, [
+            return response($pdfContent, 200, [
                 'Content-Type' => 'application/pdf',
                 'Content-Disposition' => 'inline; filename="' . $filename . '"',
             ]);
         } catch (\Throwable $e) {
-            Log::error('PDF generation failed for resume ' . $resume->id . ': ' . $e->getMessage());
-
-            // Fallback: return the HTML so the user can still view/print from the browser.
+            Log::error('PDF generation fallback failed for resume ' . $resume->id . ': ' . $e->getMessage());
+            // Final fallback: return HTML so the user can still view/print from the browser.
             return response($html, 200, [
                 'Content-Type' => 'text/html; charset=UTF-8',
                 'X-PDF-Error' => 'true',
@@ -482,6 +499,24 @@ class ResumeController extends Controller
         }
 
         return redirect()->route('resumes.show', $resume)->with('status', '履歴書を更新しました');
+    }
+
+    /**
+     * Revoke public token for a resume (owner or admin only)
+     */
+    public function revokePublic(Resume $resume)
+    {
+        $user = Auth::user();
+        $isOwner = ($user && $resume->user_id && $resume->user_id === $user->id);
+        $isAdmin = ($user && method_exists($user, 'isAdmin') && $user->isAdmin());
+        if (! ($isOwner || $isAdmin)) {
+            abort(403, 'この操作を行う権限がありません');
+        }
+
+        $resume->public_token = null;
+        $resume->save();
+
+        return redirect()->back()->with('status', '公開リンクを無効化しました');
     }
 
     public function destroy(Resume $resume)
