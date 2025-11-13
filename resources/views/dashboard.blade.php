@@ -5,8 +5,7 @@
         </h2>
     </x-slot>
 
-    <!-- Include Bootstrap 5 CSS from CDN for this page -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-" crossorigin="anonymous">
+    <!-- Bootstrap is bundled via Vite (imported in resources/css/app.css) -->
 
     <div class="py-4">
         <div class="container">
