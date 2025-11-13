@@ -24,6 +24,9 @@ class Resume extends Model
         'contact_postal',
         'photo_path',
         'public_token',
+        'status',
+        'reviewed_at',
+        'reviewed_by',
     ];
 
     /**
@@ -32,6 +35,7 @@ class Resume extends Model
      */
     protected $casts = [
         'birth_date' => 'date',
+        'reviewed_at' => 'datetime',
     ];
 
     public function histories()

@@ -110,14 +110,74 @@
             </div>
 
             @if(isset($adminTotals) && $adminTotals)
+                <div class="mb-3">
+                    <a href="{{ route('admin.resumes.index') }}" class="btn btn-outline-primary">未確認履歴書を確認する（{{ $adminTotals['unreviewed'] ?? 0 }}）</a>
+                </div>
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">管理者情報</h5>
                         <p class="mb-1">ユーザー数: <strong>{{ $adminTotals['users'] }}</strong></p>
-                        <p class="mb-0">総履歴書数: <strong>{{ $adminTotals['resumes'] }}</strong></p>
+                        <p class="mb-1">総履歴書数: <strong>{{ $adminTotals['resumes'] }}</strong></p>
+                        <p class="mb-0">未確認履歴書: <strong>{{ $adminTotals['unreviewed'] ?? 0 }}</strong></p>
+                    </div>
+                </div>
+                <div class="card mt-4">
+                    <div class="card-body">
+                        <h5 class="card-title">最近の推移（7日）</h5>
+                        <div style="height:240px;">
+                            <canvas id="chart7"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="card mt-4">
+                    <div class="card-body">
+                        <h5 class="card-title">最近の推移（30日）</h5>
+                        <div style="height:240px;">
+                            <canvas id="chart30"></canvas>
+                        </div>
                     </div>
                 </div>
             @endif
         </div>
     </div>
 </x-app-layout>
+
+@if(isset($adminTotals['series']))
+    @php $s = $adminTotals['series']; @endphp
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const labels7 = @json($s['labels7']);
+            const resumes7 = @json($s['resumes7']);
+            const users7 = @json($s['users7']);
+
+            const ctx7 = document.getElementById('chart7').getContext('2d');
+            new Chart(ctx7, {
+                type: 'line',
+                data: {
+                    labels: labels7,
+                    datasets: [
+                        { label: '履歴書作成', data: resumes7, borderColor: '#0d6efd', tension: 0.2 },
+                        { label: 'ユーザー登録', data: users7, borderColor: '#198754', tension: 0.2 }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            const labels30 = @json($s['labels30']);
+            const resumes30 = @json($s['resumes30']);
+            const users30 = @json($s['users30']);
+            const ctx30 = document.getElementById('chart30').getContext('2d');
+            new Chart(ctx30, {
+                type: 'line',
+                data: {
+                    labels: labels30,
+                    datasets: [
+                        { label: '履歴書作成', data: resumes30, borderColor: '#0d6efd', tension: 0.2 },
+                        { label: 'ユーザー登録', data: users30, borderColor: '#198754', tension: 0.2 }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        });
+    </script>
+@endif

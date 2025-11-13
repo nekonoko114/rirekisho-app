@@ -144,6 +144,9 @@ body {
 .contact-address-section {
     display: flex;
 }
+.gender-value {
+    text-align: center;
+}
 .address-label,
 .contact-address-label {
 }
@@ -151,7 +154,7 @@ body {
     font-size: 12px;
     width: 20%;
     border-left: 1px solid #333;
-    padding: 4px;
+    padding: 18px 4px;
 }
 .email-label {
     width: 100%;
@@ -161,12 +164,12 @@ body {
 }
 .email-value {
     font-size: 14px;
-    width: 100%;
-    height: 60px;
+    width: 100%;;
     border: 1px solid #333;
     margin-bottom: 10px;
     text-align: center;
     height: 30px;
+    line-height: 2;
 }
 
 /* テーブル共通スタイル */
@@ -251,6 +254,7 @@ th {
 .name-value {
     font-size: 18px;
     right: 12px;
+    text-align: center;
 }
 .address-value {
     text-align: center;
@@ -366,7 +370,7 @@ th {
 .request-row {
     border-bottom: 1px solid #000;
     /* Use min-height instead of fixed height to avoid forcing overflow */
-    min-height: 168px;
+    min-height: 122px;
     padding: 8px;
     /* Avoid breaking this block across pages */
     page-break-inside: avoid;

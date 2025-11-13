@@ -41,6 +41,13 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::match(['put','patch'], 'resumes/{resume}', [ResumeController::class, 'update'])->name('resumes.update');
     Route::delete('resumes/{resume}', [ResumeController::class, 'destroy'])->name('resumes.destroy');
 
+    // Admin: resume moderation
+    Route::get('admin/resumes', [\App\Http\Controllers\Admin\ResumeModerationController::class, 'index'])->name('admin.resumes.index');
+    Route::get('admin/resumes/{resume}', [\App\Http\Controllers\Admin\ResumeModerationController::class, 'show'])->name('admin.resumes.show');
+    Route::post('admin/resumes/{resume}/approve', [\App\Http\Controllers\Admin\ResumeModerationController::class, 'approve'])->name('admin.resumes.approve');
+    Route::post('admin/resumes/{resume}/reject', [\App\Http\Controllers\Admin\ResumeModerationController::class, 'reject'])->name('admin.resumes.reject');
+    Route::post('admin/resumes/{resume}/review', [\App\Http\Controllers\Admin\ResumeModerationController::class, 'markReviewed'])->name('admin.resumes.mark_reviewed');
+
     // Admin user management: show only index and show (read-only listing)
         // Admin user management: full resource (index, create, store, show, edit, update, destroy)
         Route::resource('admin/users', \App\Http\Controllers\Admin\UserController::class)->names([

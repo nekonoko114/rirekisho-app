@@ -17,25 +17,15 @@
                     </x-nav-link>
                     @auth
                         @php $user = Auth::user(); @endphp
-                        @if($user && method_exists($user, 'isAdmin') && $user->isAdmin())
-                            @if(Route::has('users.index'))
-                                    <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.index')">
-                                        {{ __('ユーザー一覧') }}
-                                    </x-nav-link>
-                                @else
-                                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                                        {{ __('ユーザー一覧') }}
-                                    </x-nav-link>
-                                @endif
-                                {{-- 管理者でも投稿一覧にアクセスできるように追加表示 --}}
-                                <x-nav-link :href="route('resumes.index')" :active="request()->routeIs('resumes.index')">
-                                    {{ __('投稿一覧') }}
-                                </x-nav-link>
-                        @else
-                            <x-nav-link :href="route('resumes.index')" :active="request()->routeIs('resumes.index')">
-                                {{ __('投稿一覧') }}
+                        @if($user && method_exists($user, 'isAdmin') && $user->isAdmin() && Route::has('admin.users.index'))
+                            <x-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
+                                {{ __('ユーザー一覧') }}
                             </x-nav-link>
                         @endif
+
+                        <x-nav-link :href="route('resumes.index')" :active="request()->routeIs('resumes.*')">
+                            {{ __('投稿一覧') }}
+                        </x-nav-link>
                     @endauth
                 </div>
                 {{-- 新規作成のボタンとリンク --}}
@@ -103,6 +93,19 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+
+            @auth
+                @php $user = Auth::user(); @endphp
+                @if($user && method_exists($user, 'isAdmin') && $user->isAdmin() && Route::has('admin.users.index'))
+                    <x-responsive-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
+                        {{ __('ユーザー一覧') }}
+                    </x-responsive-nav-link>
+                @endif
+
+                <x-responsive-nav-link :href="route('resumes.index')" :active="request()->routeIs('resumes.*')">
+                    {{ __('投稿一覧') }}
+                </x-responsive-nav-link>
+            @endauth
         </div>
 
         <!-- Responsive Settings Options -->
