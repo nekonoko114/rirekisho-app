@@ -75,7 +75,7 @@ body {
     height: 140px;
     text-align: center;
     right: 40px;
-    top: 30px;
+    top: 5px;
 }
 
 .note-box p {
@@ -92,7 +92,7 @@ body {
 }
 
 .name-label {
-    height: 80px;
+    height: 65px;
     font-size: 12px;
 }
 .birth {
@@ -112,7 +112,10 @@ body {
     width: 70%;
     border-right: 1px solid #333;
 }
-
+.contact-address-value {
+    text-align: center;
+    font-size: 14px;
+}
 .address-section,
 .contact-address-section {
     border: 1px solid #333;
@@ -163,7 +166,7 @@ body {
     border: 1px solid #333;
     margin-bottom: 10px;
     text-align: center;
-    height: 60px;
+    height: 30px;
 }
 
 /* テーブル共通スタイル */
@@ -247,7 +250,7 @@ th {
 }
 .name-value {
     font-size: 18px;
-    text-align: center;
+    right: 12px;
 }
 .address-value {
     text-align: center;
@@ -402,9 +405,21 @@ th {
 }
 
 /* '以上' マーカーを右寄せする */
-.marker {
-    text-align: right;
+/* Make the cell content a positioning context so the marker can be placed at the right edge. */
+.history-table td .cell-content,
+.history-table-right td .cell-content,
+.license-table td .cell-content {
+    position: relative;
 }
+
+.marker {
+    /* place the marker at the right edge of the cell */
+    position: absolute;
+    right: 6px;
+    top: 0.15em;
+    font-weight: bold;
+}
+
 .history-table td .cell-content.filled,
 .history-table-right td .cell-content.filled,
 .license-table td .cell-content.filled {

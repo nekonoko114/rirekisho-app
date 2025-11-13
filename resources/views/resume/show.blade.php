@@ -20,8 +20,12 @@
     @unless(isset($forPdf) && $forPdf)
     @php
       $token = request()->query('token') ?? ($resume->public_token ?? null);
-      $pdfUrl = url('/resumes/'.$resume->id.'/pdf');
-      if ($token) { $pdfUrl .= '?token=' . $token; }
+      if (Route::has('resumes.pdf')) {
+        $pdfUrl = route('resumes.pdf', $resume);
+      } else {
+        $pdfUrl = url('/resumes/'.$resume->id.'/pdf');
+      }
+      if ($token) { $pdfUrl .= (str_contains($pdfUrl, '?') ? '&' : '?') . 'token=' . $token; }
     @endphp
     <div style="text-align: right; margin: 8px 30px 0 0; btn">
       <a href="{{ $pdfUrl }}" target="_blank" rel="noopener" class="print-button pdf-only">PDFを開く</a>
@@ -87,8 +91,12 @@
           </div>
 
           <div class="gender-block">
-            <span class="gender-label">性別</span>
-            <span class="gender-value">{{ $resume->gender ?: '—' }}</span>
+              <span class="gender-label">性別</span>
+              @php
+                $genderMap = ['male' => '男性', 'female' => '女性', 'other' => 'その他'];
+                $genderVal = $resume->gender ? ($genderMap[$resume->gender] ?? $resume->gender) : '—';
+              @endphp
+              <span class="gender-value">{{ $genderVal }}</span>
           </div>
         </div>
 
@@ -109,12 +117,12 @@
         <div class="contact-address-section">
           <div class="contact-address-section-wrapper">
             <div class="contact-address-furigana">
-              <span class="contact-address-label">ふりがな</span>
-              <span class="contact-address-value">{{ '' }}</span>
+              <div class="contact-address-label">ふりがな</div>
+              <div class="contact-address-value">{{ '' }}</div>
             </div>
             <div class="contact-address-detail">
-              <span class="contact-address-label">連絡先　〒</span>
-              <span class="contact-address-value">{{ $resume->contact_address }}</span>
+              <div class="contact-address-label">連絡先　〒</div>
+              <div class="contact-address-value">{{ $resume->contact_address }}</div>
             </div>
           </div>
           <div class="phone-label">{{ $resume->phone }}</div>
