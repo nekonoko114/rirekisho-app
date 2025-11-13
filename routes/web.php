@@ -19,6 +19,8 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     // Authenticated users can view their own resumes list
     Route::get('resumes', [ResumeController::class, 'index'])->name('resumes.index');
+    // Revoke public token (owner or admin)
+    Route::post('resumes/{resume}/revoke-public', [ResumeController::class, 'revokePublic'])->name('resumes.revoke_public');
 });
 
 require __DIR__.'/auth.php';
