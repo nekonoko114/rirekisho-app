@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ResumeStoreRequest;
+use App\Http\Requests\ResumeUpdateRequest;
 use App\Models\Resume;
 use App\Models\ResumeHistory;
 use App\Models\ResumeLicense;
 use App\Models\ResumeProfile;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-
+use Illuminate\Support\Facades\Storage;
 
 class ResumeController extends Controller
 {
@@ -23,7 +24,7 @@ class ResumeController extends Controller
     {
         $user = Auth::user();
 
-        $query = Resume::withCount(['histories','licenses'])->orderBy('id','desc');
+        $query = Resume::withCount(['histories', 'licenses'])->orderBy('id', 'desc');
 
         // If user is not admin, limit to their own resumes
         $isAdminUser = ($user && method_exists($user, 'isAdmin') && $user->isAdmin());
@@ -32,105 +33,40 @@ class ResumeController extends Controller
         }
 
         $resumes = $query->paginate(15);
+
         return view('resume.index', compact('resumes'));
     }
 
-    public function store(Request $request)
+    public function store(ResumeStoreRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'nullable|string|max:255',
-            'furigana' => 'nullable|string|max:255',
-            'birth_date' => 'nullable|date',
-            'gender' => 'nullable|in:male,female,other',
-            'phone' => 'nullable|string|max:50',
-            'email' => 'nullable|email|max:255',
-            'address' => 'nullable|string',
-            'address_postal' => ['nullable','string','max:20','regex:/^\d{3}-\d{4}$/'],
-            'contact_address' => 'nullable|string',
-            'contact_postal' => ['nullable','string','max:20','regex:/^\d{3}-\d{4}$/'],
-            'contact_phone' => 'nullable|string|max:50',
-            'photo' => 'nullable|image|max:2048',
-            'histories' => 'nullable|array',
-            'histories_education_text' => 'nullable|string',
-            'histories_work_text' => 'nullable|string',
-            'licenses' => 'nullable|array',
-            'licenses_text' => 'nullable|string',
-            'motivation' => 'nullable|string',
-            'personal_requests' => 'nullable|string',
-        ]);
+        $validated = $request->validated();
 
         if ($request->hasFile('photo')) {
             $path = $request->file('photo')->store('photos', 'public');
             $validated['photo_path'] = $path;
         }
 
-        // Fallback combination when client-side JS is disabled: combine parts into main fields
-        // Phone
-        if (empty($validated['phone'])) {
-            $p1 = $request->input('phone_part1', '');
-            $p2 = $request->input('phone_part2', '');
-            $p3 = $request->input('phone_part3', '');
-            $parts = array_filter([$p1, $p2, $p3], function ($v) { return trim((string)$v) !== ''; });
-            if (!empty($parts)) {
-                $validated['phone'] = implode('-', $parts);
-            }
-        }
-        if (empty($validated['contact_phone'])) {
-            $cp1 = $request->input('contact_phone_part1', '');
-            $cp2 = $request->input('contact_phone_part2', '');
-            $cp3 = $request->input('contact_phone_part3', '');
-            $cparts = array_filter([$cp1, $cp2, $cp3], function ($v) { return trim((string)$v) !== ''; });
-            if (!empty($cparts)) {
-                $validated['contact_phone'] = implode('-', $cparts);
-            }
-        }
-        // Postal
-        if (empty($validated['address_postal'])) {
-            $ap1 = $request->input('address_postal_part1', '');
-            $ap2 = $request->input('address_postal_part2', '');
-            $aparts = array_filter([$ap1, $ap2], function ($v) { return trim((string)$v) !== ''; });
-            if (!empty($aparts)) {
-                $validated['address_postal'] = implode('-', $aparts);
-            }
-        }
-        if (empty($validated['contact_postal'])) {
-            $cap1 = $request->input('contact_postal_part1', '');
-            $cap2 = $request->input('contact_postal_part2', '');
-            $caparts = array_filter([$cap1, $cap2], function ($v) { return trim((string)$v) !== ''; });
-            if (!empty($caparts)) {
-                $validated['contact_postal'] = implode('-', $caparts);
-            }
-        }
-
-        // Post-combination validation: ensure phone fields contain only digits and hyphens
-        if (!empty($validated['phone']) && !preg_match('/^[0-9-]+$/', $validated['phone'])) {
-            return back()->withInput()->withErrors(['phone' => '電話番号は数字とハイフンのみ使用できます']);
-        }
-        if (!empty($validated['contact_phone']) && !preg_match('/^[0-9-]+$/', $validated['contact_phone'])) {
-            return back()->withInput()->withErrors(['contact_phone' => '連絡先電話は数字とハイフンのみ使用できます']);
-        }
-
-        // Post-combination validation: ensure postal codes match NNN-NNNN if present
-        if (!empty($validated['address_postal']) && !preg_match('/^\d{3}-\d{4}$/', $validated['address_postal'])) {
-            return back()->withInput()->withErrors(['address_postal' => '郵便番号は「123-4567」の形式で入力してください']);
-        }
-        if (!empty($validated['contact_postal']) && !preg_match('/^\d{3}-\d{4}$/', $validated['contact_postal'])) {
-            return back()->withInput()->withErrors(['contact_postal' => '連絡先の郵便番号は「123-4567」の形式で入力してください']);
-        }
-
-        // Attach user_id if authenticated, otherwise we'll generate a public token
+        // Attach user_id if authenticated, otherwise generate a public token
         if ($request->user()) {
             $validated['user_id'] = $request->user()->id;
         } else {
-            // generate a secure token for guest access
             $validated['public_token'] = bin2hex(\random_bytes(16));
         }
 
         $resume = Resume::create($validated);
 
-        // histories: accept both array inputs and simplified textarea inputs
-        $historiesInput = $request->input('histories', []);
-        if (!empty($historiesInput)) {
+        // histories: accept multiple input shapes. Merge any available arrays (legacy 'histories',
+        // or split sections 'histories_education' and 'histories_work') so the controller is robust
+        // against frontend naming differences.
+        $historiesInput = [];
+        $historiesInput = array_merge(
+            $historiesInput,
+            (array) $request->input('histories', []),
+            (array) $request->input('histories_education', []),
+            (array) $request->input('histories_work', [])
+        );
+
+        if (! empty($historiesInput)) {
             foreach ($historiesInput as $i => $h) {
                 if (empty($h['description']) && empty($h['year']) && empty($h['month'])) {
                     continue;
@@ -144,62 +80,11 @@ class ResumeController extends Controller
                     'sort_order' => $i,
                 ]);
             }
-        } else {
-            // parse education lines
-            $eduText = $request->input('histories_education_text', '');
-            if (!empty(trim($eduText))) {
-                $lines = preg_split('/\r\n|\r|\n/', $eduText);
-                foreach ($lines as $i => $line) {
-                    $line = trim($line);
-                    if ($line === '') continue;
-                    // try to extract year/month at start: formats like 2010/04 or 2010-04 or 2010年04月
-                    if (preg_match('/^(\d{4})[^0-9]*(\d{1,2})?\s*(.*)$/u', $line, $m)) {
-                        $year = $m[1];
-                        $month = !empty($m[2]) ? $m[2] : null;
-                        $desc = trim($m[3]);
-                    } else {
-                        $year = null; $month = null; $desc = $line;
-                    }
-                    ResumeHistory::create([
-                        'resume_id' => $resume->id,
-                        'year' => $year,
-                        'month' => $month,
-                        'type' => 'education',
-                        'description' => $desc,
-                        'sort_order' => $i,
-                    ]);
-                }
-            }
-
-            // parse work lines
-            $workText = $request->input('histories_work_text', '');
-            if (!empty(trim($workText))) {
-                $lines = preg_split('/\r\n|\r|\n/', $workText);
-                foreach ($lines as $i => $line) {
-                    $line = trim($line);
-                    if ($line === '') continue;
-                    if (preg_match('/^(\d{4})[^0-9]*(\d{1,2})?\s*(.*)$/u', $line, $m)) {
-                        $year = $m[1];
-                        $month = !empty($m[2]) ? $m[2] : null;
-                        $desc = trim($m[3]);
-                    } else {
-                        $year = null; $month = null; $desc = $line;
-                    }
-                    ResumeHistory::create([
-                        'resume_id' => $resume->id,
-                        'year' => $year,
-                        'month' => $month,
-                        'type' => 'work',
-                        'description' => $desc,
-                        'sort_order' => $i,
-                    ]);
-                }
-            }
         }
 
         // licenses: array or simple textarea
         $licensesInput = $request->input('licenses', []);
-        if (!empty($licensesInput)) {
+        if (! empty($licensesInput)) {
             foreach ($licensesInput as $i => $l) {
                 if (empty($l['name'])) {
                     continue;
@@ -214,17 +99,21 @@ class ResumeController extends Controller
             }
         } else {
             $licensesText = $request->input('licenses_text', '');
-            if (!empty(trim($licensesText))) {
+            if (! empty(trim($licensesText))) {
                 $lines = preg_split('/\r\n|\r|\n/', $licensesText);
                 foreach ($lines as $i => $line) {
                     $line = trim($line);
-                    if ($line === '') continue;
+                    if ($line === '') {
+                        continue;
+                    }
                     if (preg_match('/^(\d{4})[^0-9]*(\d{1,2})?\s*(.*)$/u', $line, $m)) {
                         $year = $m[1];
-                        $month = !empty($m[2]) ? $m[2] : null;
+                        $month = ! empty($m[2]) ? $m[2] : null;
                         $rest = trim($m[3]);
                     } else {
-                        $year = null; $month = null; $rest = $line;
+                        $year = null;
+                        $month = null;
+                        $rest = $line;
                     }
                     ResumeLicense::create([
                         'resume_id' => $resume->id,
@@ -255,7 +144,7 @@ class ResumeController extends Controller
 
     public function show(Resume $resume)
     {
-        $resume->load(['histories','licenses','profile']);
+        $resume->load(['histories', 'licenses', 'profile']);
 
         $user = Auth::user();
         $token = request()->query('token');
@@ -319,30 +208,31 @@ class ResumeController extends Controller
         if ($useSnappy) {
             try {
                 $pdf = app('snappy.pdf.wrapper')->loadHTML($html);
-                $filename = 'resume-' . $resume->id . '.pdf';
+                $filename = 'resume-'.$resume->id.'.pdf';
 
                 return response($pdf->output(), 200, [
                     'Content-Type' => 'application/pdf',
-                    'Content-Disposition' => 'inline; filename="' . $filename . '"',
+                    'Content-Disposition' => 'inline; filename="'.$filename.'"',
                 ]);
             } catch (\Throwable $e) {
-                Log::error('PDF generation (snappy) failed for resume ' . $resume->id . ': ' . $e->getMessage());
+                Log::error('PDF generation (snappy) failed for resume '.$resume->id.': '.$e->getMessage());
                 // fall through to fallback generator
             }
         }
 
         // Fallback: use local PdfGenerator (direct wkhtmltopdf call)
         try {
-            $generator = new \App\Services\PdfGenerator();
+            $generator = new \App\Services\PdfGenerator;
             $pdfContent = $generator->outputFromHtml($html);
-            $filename = 'resume-' . $resume->id . '.pdf';
+            $filename = 'resume-'.$resume->id.'.pdf';
 
             return response($pdfContent, 200, [
                 'Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'inline; filename="' . $filename . '"',
+                'Content-Disposition' => 'inline; filename="'.$filename.'"',
             ]);
         } catch (\Throwable $e) {
-            Log::error('PDF generation fallback failed for resume ' . $resume->id . ': ' . $e->getMessage());
+            Log::error('PDF generation fallback failed for resume '.$resume->id.': '.$e->getMessage());
+
             // Final fallback: return HTML so the user can still view/print from the browser.
             return response($html, 200, [
                 'Content-Type' => 'text/html; charset=UTF-8',
@@ -359,32 +249,14 @@ class ResumeController extends Controller
             abort(403, 'この履歴書を編集する権限がありません');
         }
 
-        $resume->load(['histories','licenses','profile']);
+        $resume->load(['histories', 'licenses', 'profile']);
+
         return view('resume.edit', compact('resume'));
     }
 
-    public function update(Request $request, Resume $resume)
+    public function update(ResumeUpdateRequest $request, Resume $resume)
     {
-        // (removed debug logging)
-
-        $validated = $request->validate([
-            'name' => 'nullable|string|max:255',
-            'furigana' => 'nullable|string|max:255',
-            'birth_date' => 'nullable|date',
-            'gender' => 'nullable|in:male,female,other',
-            'phone' => 'nullable|string|max:50',
-            'email' => 'nullable|email|max:255',
-            'address' => 'nullable|string',
-            'address_postal' => ['nullable','string','max:20','regex:/^\d{3}-\d{4}$/'],
-            'contact_address' => 'nullable|string',
-            'contact_postal' => ['nullable','string','max:20','regex:/^\d{3}-\d{4}$/'],
-            'contact_phone' => 'nullable|string|max:50',
-            'photo' => 'nullable|image|max:2048',
-            'histories' => 'nullable|array',
-            'licenses' => 'nullable|array',
-            'motivation' => 'nullable|string',
-            'personal_requests' => 'nullable|string',
-        ]);
+        $validated = $request->validated();
 
         if ($request->hasFile('photo')) {
             // remove old photo if present
@@ -395,64 +267,18 @@ class ResumeController extends Controller
             $validated['photo_path'] = $path;
         }
 
-        // combine split fields same as store
-        if (empty($validated['phone'])) {
-            $p1 = $request->input('phone_part1', '');
-            $p2 = $request->input('phone_part2', '');
-            $p3 = $request->input('phone_part3', '');
-            $parts = array_filter([$p1, $p2, $p3], function ($v) { return trim((string)$v) !== ''; });
-            if (!empty($parts)) {
-                $validated['phone'] = implode('-', $parts);
-            }
-        }
-        if (empty($validated['contact_phone'])) {
-            $cp1 = $request->input('contact_phone_part1', '');
-            $cp2 = $request->input('contact_phone_part2', '');
-            $cp3 = $request->input('contact_phone_part3', '');
-            $cparts = array_filter([$cp1, $cp2, $cp3], function ($v) { return trim((string)$v) !== ''; });
-            if (!empty($cparts)) {
-                $validated['contact_phone'] = implode('-', $cparts);
-            }
-        }
-        if (empty($validated['address_postal'])) {
-            $ap1 = $request->input('address_postal_part1', '');
-            $ap2 = $request->input('address_postal_part2', '');
-            $aparts = array_filter([$ap1, $ap2], function ($v) { return trim((string)$v) !== ''; });
-            if (!empty($aparts)) {
-                $validated['address_postal'] = implode('-', $aparts);
-            }
-        }
-        if (empty($validated['contact_postal'])) {
-            $cap1 = $request->input('contact_postal_part1', '');
-            $cap2 = $request->input('contact_postal_part2', '');
-            $caparts = array_filter([$cap1, $cap2], function ($v) { return trim((string)$v) !== ''; });
-            if (!empty($caparts)) {
-                $validated['contact_postal'] = implode('-', $caparts);
-            }
-        }
-
-        // basic post-validation checks
-        if (!empty($validated['phone']) && !preg_match('/^[0-9-]+$/', $validated['phone'])) {
-            return back()->withInput()->withErrors(['phone' => '電話番号は数字とハイフンのみ使用できます']);
-        }
-        if (!empty($validated['contact_phone']) && !preg_match('/^[0-9-]+$/', $validated['contact_phone'])) {
-            return back()->withInput()->withErrors(['contact_phone' => '連絡先電話は数字とハイフンのみ使用できます']);
-        }
-
-        // authorization: only owner or admin may update
-        $user = $request->user();
-        $isOwner = ($user && $resume->user_id && $resume->user_id === $user->id);
-        $isAdmin = ($user && method_exists($user, 'isAdmin') && $user->isAdmin());
-        if (! ($isOwner || $isAdmin)) {
-            abort(403, 'この履歴書を更新する権限がありません');
-        }
-
         $resume->update($validated);
 
         // replace histories/licenses/profile: delete existing and recreate from request
         $resume->histories()->delete();
-        $historiesInput = $request->input('histories', []);
-        if (!empty($historiesInput)) {
+        $historiesInput = [];
+        $historiesInput = array_merge(
+            $historiesInput,
+            (array) $request->input('histories', []),
+            (array) $request->input('histories_education', []),
+            (array) $request->input('histories_work', [])
+        );
+        if (! empty($historiesInput)) {
             foreach ($historiesInput as $i => $h) {
                 if (empty($h['description']) && empty($h['year']) && empty($h['month'])) {
                     continue;
@@ -470,9 +296,11 @@ class ResumeController extends Controller
 
         $resume->licenses()->delete();
         $licensesInput = $request->input('licenses', []);
-        if (!empty($licensesInput)) {
+        if (! empty($licensesInput)) {
             foreach ($licensesInput as $i => $l) {
-                if (empty($l['name'])) continue;
+                if (empty($l['name'])) {
+                    continue;
+                }
                 ResumeLicense::create([
                     'resume_id' => $resume->id,
                     'year' => $l['year'] ?? null,
@@ -536,6 +364,7 @@ class ResumeController extends Controller
         $resume->licenses()->delete();
         $resume->profile()->delete();
         $resume->delete();
+
         return redirect()->route('resumes.index')->with('status', '履歴書を削除しました');
     }
 }

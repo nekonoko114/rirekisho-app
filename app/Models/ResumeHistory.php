@@ -9,7 +9,7 @@ class ResumeHistory extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['resume_id','year','month','type','description','sort_order'];
+    protected $fillable = ['resume_id', 'year', 'month', 'type', 'description', 'sort_order'];
 
     public function resume()
     {

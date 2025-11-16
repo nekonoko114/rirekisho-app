@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ResumeController;
-use App\Http\Middleware\EnsureUserIsAdmin;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -38,7 +37,7 @@ Route::get('resumes/{resume}/pdf', [ResumeController::class, 'pdf'])->name('resu
 // Apply the admin middleware class directly to avoid needing a Kernel alias.
 Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('resumes/{resume}/edit', [ResumeController::class, 'edit'])->name('resumes.edit');
-    Route::match(['put','patch'], 'resumes/{resume}', [ResumeController::class, 'update'])->name('resumes.update');
+    Route::match(['put', 'patch'], 'resumes/{resume}', [ResumeController::class, 'update'])->name('resumes.update');
     Route::delete('resumes/{resume}', [ResumeController::class, 'destroy'])->name('resumes.destroy');
 
     // Admin: resume moderation
@@ -49,14 +48,14 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::post('admin/resumes/{resume}/review', [\App\Http\Controllers\Admin\ResumeModerationController::class, 'markReviewed'])->name('admin.resumes.mark_reviewed');
 
     // Admin user management: show only index and show (read-only listing)
-        // Admin user management: full resource (index, create, store, show, edit, update, destroy)
-        Route::resource('admin/users', \App\Http\Controllers\Admin\UserController::class)->names([
-            'index' => 'admin.users.index',
-            'create' => 'admin.users.create',
-            'store' => 'admin.users.store',
-            'show' => 'admin.users.show',
-            'edit' => 'admin.users.edit',
-            'update' => 'admin.users.update',
-            'destroy' => 'admin.users.destroy',
-        ]);
+    // Admin user management: full resource (index, create, store, show, edit, update, destroy)
+    Route::resource('admin/users', \App\Http\Controllers\Admin\UserController::class)->names([
+        'index' => 'admin.users.index',
+        'create' => 'admin.users.create',
+        'store' => 'admin.users.store',
+        'show' => 'admin.users.show',
+        'edit' => 'admin.users.edit',
+        'update' => 'admin.users.update',
+        'destroy' => 'admin.users.destroy',
+    ]);
 });

@@ -23,6 +23,9 @@ body {
     max-width: 1400px;
     margin: 0 auto;
     background-color: white;
+    /* Vertically center pages within the viewport so top/bottom margins appear even */
+    align-items: center;
+    min-height: 100vh;
 }
 
 .page {
@@ -56,14 +59,29 @@ body {
 
 /* 日付セクション */
 .date-section {
-    display: flex;
+    /* display: flex;
     justify-content: space-between;
 
-    padding: 5px 0;
+    padding: 5px 0; */
 }
 
 .date-label {
     font-size: 14px;
+}
+
+.photo-box {
+    width: 120px;
+    height: 140px;
+    border: 1px solid #000;
+    position: absolute;
+    right: 14px;
+    top: 0px;
+    background-color: #f9f9f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: #999;
 }
 
 .note-box {
@@ -74,8 +92,14 @@ body {
     width: 120px;
     height: 140px;
     text-align: center;
-    right: 40px;
-    top: 5px;
+    right: 0;
+    top: 0px;
+}
+
+.photo-box img {
+    max-width: 120px;
+    max-height: 140px;
+    object-fit: cover;
 }
 
 .note-box p {
@@ -164,7 +188,7 @@ body {
 }
 .email-value {
     font-size: 14px;
-    width: 100%;;
+    width: 100%;
     border: 1px solid #333;
     margin-bottom: 10px;
     text-align: center;
@@ -389,6 +413,9 @@ th {
 
     .rirekisho-container {
         gap: 0;
+        /* keep vertical centering in print as well */
+        align-items: center;
+        min-height: 100vh;
     }
 
     /* Hide page borders in printed PDF to avoid fragments on next page */

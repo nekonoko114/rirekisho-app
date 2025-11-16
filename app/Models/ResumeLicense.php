@@ -9,7 +9,7 @@ class ResumeLicense extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['resume_id','year','month','name','details'];
+    protected $fillable = ['resume_id', 'year', 'month', 'name', 'details'];
 
     public function resume()
     {

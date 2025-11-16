@@ -135,12 +135,17 @@
                 <hr>
 
                 <div class="form-section">
-                  <label class="form-label">学歴（教育）</label>
+                  <label class="form-label">学歴（学校名・学部等）</label>
                   @php
-                    $oldHistories = old('histories', []);
+                    $oldAll = old('histories', []);
+                    $oldEdu = old('histories_education', []);
                     $eduRows = [];
-                    foreach ($oldHistories as $h) {
-                      if (($h['type'] ?? 'education') === 'education') $eduRows[] = $h;
+                    if (!empty($oldEdu)) {
+                      $eduRows = $oldEdu;
+                    } else {
+                      foreach ($oldAll as $h) {
+                        if (($h['type'] ?? 'education') === 'education') $eduRows[] = $h;
+                      }
                     }
                     $eduCount = max(4, count($eduRows));
                   @endphp
@@ -189,14 +194,19 @@
                 </div>
 
                 <div class="form-section">
-                  <label class="form-label">職歴（work）</label>
-                  @php
-                    $workRows = [];
-                    foreach ($oldHistories as $h) {
-                      if (($h['type'] ?? 'education') === 'work') $workRows[] = $h;
-                    }
-                    $workCount = max(3, count($workRows));
-                  @endphp
+                  <label class="form-label">職歴（会社名・役職等）</label>
+                    @php
+                      $oldWork = old('histories_work', []);
+                      $workRows = [];
+                      if (!empty($oldWork)) {
+                        $workRows = $oldWork;
+                      } else {
+                        foreach ($oldAll as $h) {
+                          if (($h['type'] ?? 'education') === 'work') $workRows[] = $h;
+                        }
+                      }
+                      $workCount = max(3, count($workRows));
+                    @endphp
                   <div id="workRows">
                     @for ($i = 0; $i < $workCount; $i++)
                       @php $row = $workRows[$i] ?? ['year'=>'','month'=>'','description'=>'']; @endphp
@@ -241,7 +251,7 @@
                 </div>
 
                 <div class="form-section">
-                  <label class="form-label">免許・資格</label>
+                  <label class="form-label">免許・資格（取得年・名称）</label>
                   @php $oldLicenses = old('licenses', []); $licCount = max(3, count($oldLicenses)); @endphp
                   <div id="licenseRows">
                     @for ($i = 0; $i < $licCount; $i++)
@@ -570,8 +580,8 @@
             if (!row) return;
             row.remove();
             // after removal, reindex for each container
-            reindexRows(document.getElementById('educationRows'), 'histories', 'education');
-            reindexRows(document.getElementById('workRows'), 'histories', 'work');
+            reindexRows(document.getElementById('educationRows'), 'histories_education', 'education');
+            reindexRows(document.getElementById('workRows'), 'histories_work', 'work');
             reindexRows(document.getElementById('licenseRows'), 'licenses', null);
           });
           btn._hasHandler = true;
@@ -580,8 +590,8 @@
 
       // initialize wiring
       document.addEventListener('DOMContentLoaded', function () {
-        wireAddRemove('educationRows', 'addEducation', 'education-row', 'histories', 'education');
-        wireAddRemove('workRows', 'addWork', 'work-row', 'histories', 'work');
+        wireAddRemove('educationRows', 'addEducation', 'education-row', 'histories_education', 'education');
+        wireAddRemove('workRows', 'addWork', 'work-row', 'histories_work', 'work');
         wireAddRemove('licenseRows', 'addLicense', 'license-row', 'licenses', null);
         // setup postal pairs
         setupPostalPair('address_postal_part1', 'address_postal_part2', 'address_postal');

@@ -130,27 +130,27 @@
                         }
                       @endphp
                       <div class="input-group mb-2 education-row">
-                        <select name="histories[{{ $i }}][era]" class="form-select era-select" data-type="era">
+                        <select name="histories_education[{{ $i }}][era]" class="form-select era-select" data-type="era">
                           <option value="">元号</option>
                           <option value="昭和" @if($era=='昭和') selected @endif>昭和</option>
                           <option value="平成" @if($era=='平成') selected @endif>平成</option>
                           <option value="令和" @if($era=='令和') selected @endif>令和</option>
                         </select>
-                        <select name="histories[{{ $i }}][era_year]" class="form-select era-year-select" data-type="era_year">
+                        <select name="histories_education[{{ $i }}][era_year]" class="form-select era-year-select" data-type="era_year">
                           <option value="">年</option>
                           @for($ey = 1; $ey <= 99; $ey++)
                             <option value="{{ $ey }}" @if($eraYear == $ey) selected @endif>{{ $ey }}</option>
                           @endfor
                         </select>
-                        <select name="histories[{{ $i }}][month]" class="form-select" data-type="month">
+                        <select name="histories_education[{{ $i }}][month]" class="form-select" data-type="month">
                           <option value="">月</option>
                           @for($m = 1; $m <= 12; $m++)
                             <option value="{{ $m }}" @if($month == $m) selected @endif>{{ $m }}</option>
                           @endfor
                         </select>
-                        <input type="text" name="histories[{{ $i }}][description]" class="form-control" placeholder="学校名・学部・備考" value="{{ $desc }}" data-type="description">
-                        <input type="hidden" name="histories[{{ $i }}][year]" value="{{ $year }}">
-                        <input type="hidden" name="histories[{{ $i }}][type]" value="education">
+                        <input type="text" name="histories_education[{{ $i }}][description]" class="form-control" placeholder="学校名・学部・備考" value="{{ $desc }}" data-type="description">
+                        <input type="hidden" name="histories_education[{{ $i }}][year]" value="{{ $year }}">
+                        <input type="hidden" name="histories_education[{{ $i }}][type]" value="education">
                         <button type="button" class="btn btn-outline-secondary btn-remove-education">−</button>
                       </div>
                     @endfor
@@ -183,27 +183,27 @@
                         }
                       @endphp
                       <div class="input-group mb-2 work-row">
-                        <select name="histories[{{ $i }}][era]" class="form-select era-select" data-type="era">
+                        <select name="histories_work[{{ $i }}][era]" class="form-select era-select" data-type="era">
                           <option value="">元号</option>
                           <option value="昭和" @if($era=='昭和') selected @endif>昭和</option>
                           <option value="平成" @if($era=='平成') selected @endif>平成</option>
                           <option value="令和" @if($era=='令和') selected @endif>令和</option>
                         </select>
-                        <select name="histories[{{ $i }}][era_year]" class="form-select era-year-select" data-type="era_year">
+                        <select name="histories_work[{{ $i }}][era_year]" class="form-select era-year-select" data-type="era_year">
                           <option value="">年</option>
                           @for($ey = 1; $ey <= 99; $ey++)
                             <option value="{{ $ey }}" @if($eraYear == $ey) selected @endif>{{ $ey }}</option>
                           @endfor
                         </select>
-                        <select name="histories[{{ $i }}][month]" class="form-select" data-type="month">
+                        <select name="histories_work[{{ $i }}][month]" class="form-select" data-type="month">
                           <option value="">月</option>
                           @for($m = 1; $m <= 12; $m++)
                             <option value="{{ $m }}" @if($month == $m) selected @endif>{{ $m }}</option>
                           @endfor
                         </select>
-                        <input type="text" name="histories[{{ $i }}][description]" class="form-control" placeholder="会社名・役職・備考" value="{{ $desc }}" data-type="description">
-                        <input type="hidden" name="histories[{{ $i }}][year]" value="{{ $year }}">
-                        <input type="hidden" name="histories[{{ $i }}][type]" value="work">
+                        <input type="text" name="histories_work[{{ $i }}][description]" class="form-control" placeholder="会社名・役職・備考" value="{{ $desc }}" data-type="description">
+                        <input type="hidden" name="histories_work[{{ $i }}][year]" value="{{ $year }}">
+                        <input type="hidden" name="histories_work[{{ $i }}][type]" value="work">
                         <button type="button" class="btn btn-outline-secondary btn-remove-work">−</button>
                       </div>
                     @endfor
@@ -376,8 +376,8 @@
             const row = e.target.closest('div');
             if (!row) return;
             row.remove();
-            reindexRows(document.getElementById('educationRows'), 'histories', 'education');
-            reindexRows(document.getElementById('workRows'), 'histories', 'work');
+            reindexRows(document.getElementById('educationRows'), 'histories_education', 'education');
+            reindexRows(document.getElementById('workRows'), 'histories_work', 'work');
             reindexRows(document.getElementById('licenseRows'), 'licenses', null);
           });
           btn._hasHandler = true;
@@ -429,14 +429,14 @@
       }
 
       document.addEventListener('DOMContentLoaded', function () {
-        wireAddRemove('educationRows', 'addEducation', 'education-row', 'histories', 'education');
-        wireAddRemove('workRows', 'addWork', 'work-row', 'histories', 'work');
+        wireAddRemove('educationRows', 'addEducation', 'education-row', 'histories_education', 'education');
+        wireAddRemove('workRows', 'addWork', 'work-row', 'histories_work', 'work');
         wireAddRemove('licenseRows', 'addLicense', 'license-row', 'licenses', null);
 
         const form = document.querySelector('form');
         form?.addEventListener('submit', function () {
-          reindexRows(document.getElementById('educationRows'), 'histories', 'education');
-          reindexRows(document.getElementById('workRows'), 'histories', 'work');
+          reindexRows(document.getElementById('educationRows'), 'histories_education', 'education');
+          reindexRows(document.getElementById('workRows'), 'histories_work', 'work');
           reindexRows(document.getElementById('licenseRows'), 'licenses', null);
           // join postal/phone hidden fields if present
           const a1 = document.getElementsByName('address_postal_part1')[0];

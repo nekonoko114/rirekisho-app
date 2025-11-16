@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use App\Models\Resume;
+use Illuminate\Console\Command;
 
 class TokenizeResumes extends Command
 {
@@ -31,6 +31,7 @@ class TokenizeResumes extends Command
         $count = $query->count();
         if ($count === 0) {
             $this->info('No anonymous resumes without tokens found.');
+
             return 0;
         }
 
@@ -38,7 +39,7 @@ class TokenizeResumes extends Command
         $bar = $this->output->createProgressBar($count);
         $bar->start();
 
-        $query->chunkById(100, function($resumes) use ($bar) {
+        $query->chunkById(100, function ($resumes) use ($bar) {
             foreach ($resumes as $r) {
                 $r->public_token = bin2hex(\random_bytes(16));
                 $r->save();
@@ -49,6 +50,7 @@ class TokenizeResumes extends Command
         $bar->finish();
         $this->newLine();
         $this->info('Token generation completed.');
+
         return 0;
     }
 }

@@ -39,9 +39,22 @@
         </div>
 
         <div class="date-section">
-          <div class="note-box">
-            <p>写真を貼る位置</p>
-          </div>
+          @if($resume->photo_path)
+            @php
+              try {
+                $photoUrl = Storage::disk('public')->url($resume->photo_path);
+              } catch (\Throwable $e) {
+                $photoUrl = asset('storage/' . ltrim($resume->photo_path, '/'));
+              }
+            @endphp
+            <div class="photo-box">
+              <img src="{{ $photoUrl }}" alt="履歴書の写真" style="width:120px; height:auto; object-fit:cover; border:1px solid #ccc;" />
+            </div>
+          @else
+            <div class="note-box">
+              <p>写真を貼る位置</p>
+            </div>
+          @endif
         </div>
 
         <div class="user-name-section">
@@ -125,7 +138,7 @@
               <div class="contact-address-value">{{ $resume->contact_address }}</div>
             </div>
           </div>
-          <div class="phone-label">{{ $resume->phone }}</div>
+          <div class="phone-label">{{ $resume->contact_phone ?? '' }}</div>
         </div>
 
         <div class="email-label">メールアドレス</div>
@@ -164,7 +177,11 @@
                 <div class="{{ trim((string)($item->month ?? '')) !== '' ? 'cell-content filled' : 'cell-content' }}">{{ $item->month ?? '' }}</div>
               </td>
               <td>
-                @php $desc = $item->description ?? ''; @endphp
+                @php
+                  $descRaw = $item->description ?? '';
+                  // strip accidental type prefixes like "education:" or "work:"
+                  $desc = preg_replace('/^(education|work):\s*/i', '', (string)$descRaw);
+                @endphp
                 <div class="{{ trim((string)$desc) !== '' ? 'cell-content filled' : 'cell-content' }}">
                   @if(!is_null($markerIndex) && $i === $markerIndex)
                     {{ $desc }}@if($desc !== '')　@endif<span class="marker">以上</span>
@@ -199,7 +216,8 @@
                 <div class="{{ trim((string)($item->month ?? '')) !== '' ? 'cell-content filled' : 'cell-content' }}">{{ $item->month ?? '' }}</div>
               </td>
               <td>
-                <div class="{{ trim((string)($item->description ?? '')) !== '' ? 'cell-content filled' : 'cell-content' }}">{{ $item->description ?? '' }}</div>
+                @php $descRawR = $item->description ?? ''; $descR = preg_replace('/^(education|work):\s*/i', '', (string)$descRawR); @endphp
+                <div class="{{ trim((string)$descR) !== '' ? 'cell-content filled' : 'cell-content' }}">{{ $descR }}</div>
               </td>
             </tr>
           @endfor

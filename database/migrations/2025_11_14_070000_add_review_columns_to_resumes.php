@@ -17,7 +17,7 @@ return new class extends Migration
     public function down()
     {
         Schema::table('resumes', function (Blueprint $table) {
-            $table->dropColumn(['reviewed_at','reviewed_by']);
+            $table->dropColumn(['reviewed_at', 'reviewed_by']);
         });
     }
 };

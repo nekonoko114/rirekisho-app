@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "81f78dcbc5c362089c623fc5ff48f252",
+    "content-hash": "f07ef1ded01898e55702fc1feb89325f",
     "packages": [
         {
             "name": "barryvdh/laravel-snappy",
@@ -6363,6 +6363,88 @@
         }
     ],
     "packages-dev": [
+        {
+            "name": "askdkc/breezejp",
+            "version": "v2.4.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/askdkc/breezejp.git",
+                "reference": "36face45851a45a5b6a635ae5dfc55107cf0119d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/askdkc/breezejp/zipball/36face45851a45a5b6a635ae5dfc55107cf0119d",
+                "reference": "36face45851a45a5b6a635ae5dfc55107cf0119d",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/contracts": "^11.0|^12.0",
+                "php": "^8.2",
+                "spatie/laravel-package-tools": "^1.14.0"
+            },
+            "require-dev": {
+                "larastan/larastan": "^3.0",
+                "laravel/pint": "^1.4",
+                "nunomaduro/collision": "^8.0",
+                "orchestra/testbench": "^9.0|^10.0",
+                "pestphp/pest": "^3.1",
+                "phpstan/extension-installer": "^1.4",
+                "phpunit/phpunit": "^11.5"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "aliases": {
+                        "Breezejp": "Askdkc\\Breezejp\\Facades\\Breezejp"
+                    },
+                    "providers": [
+                        "Askdkc\\Breezejp\\BreezejpServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Askdkc\\Breezejp\\": "src",
+                    "Askdkc\\Breezejp\\Database\\Factories\\": "database/factories"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "askdkc",
+                    "email": "askdkc@users.noreply.github.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Laravel Starter Kit (Livewire+Breeze+Laravel UI+Jetstream)や標準のバリデーションメッセージを全て一瞬で日本語化し、言語切替機能も提供するパッケージです / This package provides all-in-one Japanese translation for Laravel StarterKit (Livewire StarterKit, Breeze, Laravel UI and Jetstream) packages and validation messages with language switching feature.",
+            "homepage": "https://github.com/askdkc/breezejp",
+            "keywords": [
+                "breeze",
+                "japanese",
+                "jetstream",
+                "laravel",
+                "laravel ui",
+                "translation"
+            ],
+            "support": {
+                "issues": "https://github.com/askdkc/breezejp/issues",
+                "source": "https://github.com/askdkc/breezejp/tree/v2.4.1"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/askdkc",
+                    "type": "github"
+                },
+                {
+                    "url": "https://ko-fi.com/askdkc",
+                    "type": "ko_fi"
+                }
+            ],
+            "time": "2025-10-24T09:54:29+00:00"
+        },
         {
             "name": "fakerphp/faker",
             "version": "v1.24.1",

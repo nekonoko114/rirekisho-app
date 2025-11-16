@@ -11,27 +11,29 @@ class ResumeModerationController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth','admin']);
+        $this->middleware(['auth', 'admin']);
     }
 
     public function index(Request $request)
     {
         $q = $request->get('q');
-        $query = Resume::with('profile')->orderBy('created_at','desc');
+        $query = Resume::with('profile')->orderBy('created_at', 'desc');
         // default to show unreviewed resumes (reviewed_at IS NULL)
         $query->whereNull('reviewed_at');
         if ($q) {
-            $query->where(function($b) use ($q) {
-                $b->where('name','like',"%{$q}%")->orWhere('email','like',"%{$q}%");
+            $query->where(function ($b) use ($q) {
+                $b->where('name', 'like', "%{$q}%")->orWhere('email', 'like', "%{$q}%");
             });
         }
         $resumes = $query->paginate(20)->withQueryString();
-        return view('admin.resumes.index', compact('resumes','q'));
+
+        return view('admin.resumes.index', compact('resumes', 'q'));
     }
 
     public function show(Resume $resume)
     {
-        $resume->load(['histories','licenses','profile']);
+        $resume->load(['histories', 'licenses', 'profile']);
+
         return view('admin.resumes.show', compact('resume'));
     }
 

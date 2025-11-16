@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Resume;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
@@ -52,10 +52,10 @@ class DashboardController extends Controller
             }
 
             $adminTotals['series'] = [
-                'labels7' => collect(range(6,0))->map(fn($i) => $today->copy()->subDays($i)->format('m/d'))->toArray(),
+                'labels7' => collect(range(6, 0))->map(fn ($i) => $today->copy()->subDays($i)->format('m/d'))->toArray(),
                 'resumes7' => $resumes7,
                 'users7' => $users7,
-                'labels30' => collect(range(29,0))->map(fn($i) => $today->copy()->subDays($i)->format('m/d'))->toArray(),
+                'labels30' => collect(range(29, 0))->map(fn ($i) => $today->copy()->subDays($i)->format('m/d'))->toArray(),
                 'resumes30' => $resumes30,
                 'users30' => $users30,
             ];

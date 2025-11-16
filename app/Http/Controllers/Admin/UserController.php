@@ -50,7 +50,10 @@ class UserController extends Controller
 
         // If Spatie roles available, assign role
         if (method_exists($user, 'assignRole')) {
-            try { $user->assignRole($data['role']); } catch (\Throwable $e) {}
+            try {
+                $user->assignRole($data['role']);
+            } catch (\Throwable $e) {
+            }
         }
 
         return redirect()->route('admin.users.index')->with('status', 'ユーザーを作成しました');
@@ -70,12 +73,12 @@ class UserController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:users,email,' . $user->id,
+            'email' => 'required|email|max:255|unique:users,email,'.$user->id,
             'password' => 'nullable|string|min:8|confirmed',
             'role' => 'nullable|string|max:50',
         ]);
 
-        if (!empty($data['password'])) {
+        if (! empty($data['password'])) {
             $data['password'] = Hash::make($data['password']);
         } else {
             unset($data['password']);
@@ -86,7 +89,10 @@ class UserController extends Controller
         $user->update($data);
 
         if (method_exists($user, 'syncRoles')) {
-            try { $user->syncRoles([$data['role']]); } catch (\Throwable $e) {}
+            try {
+                $user->syncRoles([$data['role']]);
+            } catch (\Throwable $e) {
+            }
         }
 
         return redirect()->route('admin.users.index')->with('status', 'ユーザーを更新しました');
@@ -95,6 +101,7 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         $user->delete();
+
         return redirect()->route('admin.users.index')->with('status', 'ユーザーを削除しました');
     }
 }
