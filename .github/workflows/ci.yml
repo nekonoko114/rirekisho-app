@@ -50,18 +50,21 @@ jobs:
       - name: Generate key
         run: php artisan key:generate --ansi
 
+      - name: Install Node modules and build assets
+        run: |
+          npm ci
+          npm run build
+
       - name: Configure DB
         run: |
           php artisan config:clear
           php artisan migrate --force
 
       - name: Run PHP unit tests
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ':memory:'
         run: composer test
-
-      - name: Install Node modules
-        run: |
-          npm ci
-          npm run build
 
       - name: Run Pint
         run: ./vendor/bin/pint --test
