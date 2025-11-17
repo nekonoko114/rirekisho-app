@@ -75,4 +75,47 @@ class ResumeModerationController extends Controller
 
         return redirect()->back()->with('status', '履歴書を確認済みにしました');
     }
+
+    /**
+     * Export current resume listing (respecting filters) as CSV.
+     */
+    public function export(Request $request)
+    {
+        $q = $request->get('q');
+        $query = Resume::with('profile')->orderBy('created_at', 'desc');
+        $query->whereNull('reviewed_at');
+        if ($q) {
+            $query->where(function ($b) use ($q) {
+                $b->where('name', 'like', "%{$q}%")->orWhere('email', 'like', "%{$q}%");
+            });
+        }
+
+        $resumes = $query->get();
+
+        $filename = 'resumes-' . now()->format('Ymd_His') . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
+
+        $callback = function () use ($resumes) {
+            $out = fopen('php://output', 'w');
+            // BOM for Excel UTF-8
+            fprintf($out, chr(0xEF).chr(0xBB).chr(0xBF));
+            fputcsv($out, ['ID', '氏名', 'メール', '作成日', 'ステータス', '公開トークン']);
+            foreach ($resumes as $r) {
+                fputcsv($out, [
+                    $r->id,
+                    $r->name,
+                    $r->email ?? ($r->user ? $r->user->email : ''),
+                    $r->created_at ? $r->created_at->toDateTimeString() : '',
+                    $r->status,
+                    $r->public_token,
+                ]);
+            }
+            fclose($out);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
 }

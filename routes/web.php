@@ -43,6 +43,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     // Admin: resume moderation
     Route::get('admin/resumes', [\App\Http\Controllers\Admin\ResumeModerationController::class, 'index'])->name('admin.resumes.index');
     Route::get('admin/resumes/{resume}', [\App\Http\Controllers\Admin\ResumeModerationController::class, 'show'])->name('admin.resumes.show');
+    Route::get('admin/resumes/export', [\App\Http\Controllers\Admin\ResumeModerationController::class, 'export'])->name('admin.resumes.export');
     Route::post('admin/resumes/{resume}/approve', [\App\Http\Controllers\Admin\ResumeModerationController::class, 'approve'])->name('admin.resumes.approve');
     Route::post('admin/resumes/{resume}/reject', [\App\Http\Controllers\Admin\ResumeModerationController::class, 'reject'])->name('admin.resumes.reject');
     Route::post('admin/resumes/{resume}/review', [\App\Http\Controllers\Admin\ResumeModerationController::class, 'markReviewed'])->name('admin.resumes.mark_reviewed');
