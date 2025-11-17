@@ -1,59 +1,92 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Rirekisho App（履歴書アプリ）
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+**概要**
+このリポジトリは日本語対応の履歴書作成アプリです。ユーザー登録（Laravel Breeze）により個別の履歴書を作成・編集し、公開用トークンで第三者に共有したり、PDF（印刷向け）を生成できます。
 
-## About Laravel
+**主な機能**
+- `ユーザー認証`: Laravel Breeze を利用したログイン／登録機能
+- `履歴書 CRUD`: 学歴・職歴を複数追加できるフォーム、写真アップロード
+- `公開トークン`: トークン付き公開 URL により非ログインユーザーへ履歴書を表示
+- `PDF エクスポート`: wkhtmltopdf（snappy）を利用したサーバーサイド PDF 生成
+- `印刷レイアウト`: `public/css/resume-print.css` にて印刷・PDF 用スタイルを提供
+- `日本語ローカライズ`: `resources/lang/ja.json` 等を含む
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+**使用している主なライブラリ / ツール**
+- `laravel/framework` — フレームワーク本体
+- `laravel/breeze` — 認証
+- `barryvdh/laravel-snappy`（または独自 `PdfGenerator`）— wkhtmltopdf ラッパー
+- `vite` / `npm` — フロントエンド資産のビルド
+- `phpunit` — テスト
+- `pint` — コード整形
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+**重要なファイル**
+- アプリケーション本体: `app/`
+- ビュー: `resources/views/`（`resume/` 以下に作成/編集/表示の Blade がある）
+- 印刷スタイル: `public/css/resume-print.css`
+- CI ワークフロー: `.github/workflows/ci.yml`
+- PDF 設定: `config/snappy.php`
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+**開発 / ローカル実行手順（macOS / zsh の例）**
 
-## Learning Laravel
+1. 前提ツールを用意
+```bash
+# Homebrew を使う例
+brew install php@8.2 node wkhtmltopdf
+```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+2. リポジトリをクローンして依存をインストール
+```bash
+git clone git@github.com:nekonoko114/rirekisho-app.git
+cd rirekisho-app
+composer install
+npm ci
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+3. 環境変数を準備
+```bash
+cp .env.example .env
+# .env を編集して DB 等を設定（例: DB_CONNECTION, DB_HOST, MAIL_*）
+php artisan key:generate
+```
 
-## Laravel Sponsors
+4. ストレージリンク（写真の公開表示用）
+```bash
+php artisan storage:link
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+5. DB マイグレーションとシード
+```bash
+php artisan migrate
+php artisan db:seed   # 任意
+```
 
-### Premium Partners
+6. アセットとサーバー起動
+```bash
+npm run dev    # 開発モード
+php artisan serve
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+ブラウザで `http://127.0.0.1:8000` を開きます。
 
-## Contributing
+**テストとコード整形**
+- テスト実行（PHPUnit）: `composer test` または `php artisan test`
+- Pint（整形チェック）: `./vendor/bin/pint --test`
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+**CI（GitHub Actions）について**
+- `.github/workflows/ci.yml` を追加しています。PR 作成時に自動でテスト・Pint・アセットビルドを実行します。
+- CI は `shivammathur/setup-php@2.35.5` を利用して PHP をセットアップするようピン留めしています。
 
-## Code of Conduct
+**PDF 出力について**
+- サーバー側で `wkhtmltopdf` を呼び出して PDF を作成します。`config/snappy.php` を確認し、本番環境に適切なバイナリが設定されていることを確認してください。
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+**注意点 / 運用メモ**
+- 写真・ファイルの保存先を S3 等に変更する場合は `config/filesystems.php` と保存ロジックを更新してください。
+- wkhtmltopdf は環境差（フォントやバージョン）で出力が変わるため、本番環境と同等のバイナリでテストしてください。
 
-## Security Vulnerabilities
+**よくあるトラブルと対処**
+- `Vite manifest not found` — `npm run build` を実行して `public/build/manifest.json` を生成してください。
+- CI 上で DB パスが見つからない — CI はインメモリ SQLite を使うか MySQL サービスを構成してください（`.github/workflows/ci.yml` を参照）。
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+---
 
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+必要であれば、この README をさらに詳しく（環境変数一覧、デプロイ手順、スクリーンショット、API ドキュメント）に拡張します。ご希望の追加項目を教えてください。
