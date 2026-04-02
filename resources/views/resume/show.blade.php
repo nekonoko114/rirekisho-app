@@ -12,6 +12,78 @@
       @if($css)
         <style>{!! $css !!}</style>
       @endif
+    @else
+      @vite(['resources/js/app.js'])
+      <style>
+        /* レスポンシブ対応: スマホ表示用 */
+        @media screen and (max-width: 768px) {
+          body {
+            margin: 0;
+            padding: 10px;
+            background: #f5f5f5;
+          }
+
+          .rirekisho-container {
+            flex-direction: column;
+            width: 100% !important;
+            max-width: 100% !important;
+            gap: 20px;
+          }
+
+          .page {
+            width: 100% !important;
+            max-width: 100% !important;
+            min-height: auto !important;
+            height: auto !important;
+            padding: 15px !important;
+            box-sizing: border-box;
+          }
+
+          .page-left, .page-right {
+            width: 100% !important;
+          }
+
+          /* テーブルのフォントサイズ調整 */
+          table {
+            font-size: 12px !important;
+          }
+
+          th, td {
+            padding: 6px 4px !important;
+            word-break: break-word;
+          }
+
+          /* 写真ボックスのサイズ調整 */
+          .photo-box {
+            width: 80px !important;
+            height: 112px !important;
+          }
+
+          .photo-box img {
+            width: 80px !important;
+            height: 112px !important;
+          }
+
+          /* タイトルのサイズ調整 */
+          .title {
+            font-size: 20px !important;
+          }
+
+          /* ボタンの調整 */
+          .print-button {
+            padding: 10px 15px !important;
+            font-size: 14px !important;
+          }
+
+          /* PDF生成時はレスポンシブを無効化 */
+          @media print {
+            body, .rirekisho-container, .page {
+              width: auto !important;
+              max-width: none !important;
+            }
+          }
+        }
+      </style>
     @endif
     <title>履歴書プレビュー</title>
   </head>
@@ -28,7 +100,7 @@
       if ($token) { $pdfUrl .= (str_contains($pdfUrl, '?') ? '&' : '?') . 'token=' . $token; }
     @endphp
     <div style="text-align: right; margin: 8px 30px 0 0; btn">
-      <a href="{{ $pdfUrl }}" target="_blank" rel="noopener" class="print-button pdf-only">PDFを開く</a>
+      <button onclick="downloadResumePDF()" class="print-button pdf-download-btn" style="background: #4CAF50; color: white; border: none; padding: 8px 16px; cursor: pointer; border-radius: 4px;">PDFダウンロード</button>
     </div>
     @endunless
     <div class="rirekisho-container">
@@ -41,14 +113,12 @@
         <div class="date-section">
           @if($resume->photo_path)
             @php
-              try {
-                $photoUrl = Storage::disk('public')->url($resume->photo_path);
-              } catch (\Throwable $e) {
-                $photoUrl = asset('storage/' . ltrim($resume->photo_path, '/'));
-              }
+              // Use a relative storage path to avoid absolute-URL host/port mismatches
+              // (artisan serve may run on 127.0.0.1:8000 while APP_URL is http://localhost)
+              $photoUrl = '/storage/' . ltrim($resume->photo_path, '/');
             @endphp
             <div class="photo-box">
-              <img src="{{ $photoUrl }}" alt="履歴書の写真" style="width:120px; height:auto; object-fit:cover; border:1px solid #ccc;" />
+              <img src="{{ $photoUrl }}" alt="履歴書の写真" style="width:100px; height:140px; object-fit:cover; border:1px solid #ccc;" />
             </div>
           @else
             <div class="note-box">

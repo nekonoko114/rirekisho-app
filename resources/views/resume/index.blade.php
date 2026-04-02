@@ -4,7 +4,10 @@
 <div class="container py-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h2>投稿一覧</h2>
-    <a href="{{ route('resumes.create') }}" class="btn btn-sm btn-primary">新規作成</a>
+    <div class="d-flex gap-2">
+      <a href="{{ route('resumes.create') }}" class="btn btn-sm btn-primary">新規作成</a>
+      <a href="{{ route('resumes.export') }}" class="btn btn-sm btn-outline-primary">CSV 書き出し</a>
+    </div>
   </div>
 
   <div class="card">

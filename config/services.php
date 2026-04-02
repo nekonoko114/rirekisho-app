@@ -35,4 +35,11 @@ return [
         ],
     ],
 
+    'pdf' => [
+        'enabled' => env('PDF_SERVICE_ENABLED', false),
+        'provider' => env('PDF_SERVICE_PROVIDER', 'html2pdf'),
+        'html2pdf_key' => env('PDF_HTML2PDF_API_KEY'),
+        'pdfshift_key' => env('PDF_PDFSHIFT_API_KEY'),
+    ],
+
 ];

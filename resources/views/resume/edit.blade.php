@@ -150,6 +150,9 @@
                         </select>
                         <input type="text" name="histories_education[{{ $i }}][description]" class="form-control" placeholder="学校名・学部・備考" value="{{ $desc }}" data-type="description">
                         <input type="hidden" name="histories_education[{{ $i }}][year]" value="{{ $year }}">
+                        @if(!empty($row) && isset($row->id))
+                          <input type="hidden" name="histories_education[{{ $i }}][id]" value="{{ $row->id }}">
+                        @endif
                         <input type="hidden" name="histories_education[{{ $i }}][type]" value="education">
                         <button type="button" class="btn btn-outline-secondary btn-remove-education">−</button>
                       </div>
@@ -204,6 +207,9 @@
                         <input type="text" name="histories_work[{{ $i }}][description]" class="form-control" placeholder="会社名・役職・備考" value="{{ $desc }}" data-type="description">
                         <input type="hidden" name="histories_work[{{ $i }}][year]" value="{{ $year }}">
                         <input type="hidden" name="histories_work[{{ $i }}][type]" value="work">
+                        @if(!empty($row) && isset($row->id))
+                          <input type="hidden" name="histories_work[{{ $i }}][id]" value="{{ $row->id }}">
+                        @endif
                         <button type="button" class="btn btn-outline-secondary btn-remove-work">−</button>
                       </div>
                     @endfor
@@ -257,6 +263,9 @@
                         <input type="text" name="licenses[{{ $i }}][name]" class="form-control" placeholder="名称" value="{{ $name }}" data-type="name">
                         <input type="text" name="licenses[{{ $i }}][details]" class="form-control" placeholder="備考" value="{{ $details }}" data-type="details">
                         <input type="hidden" name="licenses[{{ $i }}][year]" value="{{ $year }}">
+                        @if(!empty($l) && isset($l->id))
+                          <input type="hidden" name="licenses[{{ $i }}][id]" value="{{ $l->id }}">
+                        @endif
                         <button type="button" class="btn btn-outline-secondary btn-remove-license">−</button>
                       </div>
                     @endfor

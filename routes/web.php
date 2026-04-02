@@ -27,6 +27,10 @@ require __DIR__.'/auth.php';
 // Resume routes: guests can create/store/show; index/edit/update/destroy require admin.
 Route::get('resumes/create', [ResumeController::class, 'create'])->name('resumes.create');
 Route::post('resumes', [ResumeController::class, 'store'])->name('resumes.store');
+// Register the export route before the `{resume}` parameter route so the literal
+// path `resumes/export` does not get captured by the `{resume}` binding.
+Route::get('resumes/export', [ResumeController::class, 'export'])->name('resumes.export');
+
 Route::get('resumes/{resume}', [ResumeController::class, 'show'])->name('resumes.show');
 // PDF export (uses server-side generator if installed)
 Route::get('resumes/{resume}/pdf', [ResumeController::class, 'pdf'])->name('resumes.pdf');
@@ -42,8 +46,10 @@ Route::middleware(['auth', 'admin'])->group(function () {
 
     // Admin: resume moderation
     Route::get('admin/resumes', [\App\Http\Controllers\Admin\ResumeModerationController::class, 'index'])->name('admin.resumes.index');
-    Route::get('admin/resumes/{resume}', [\App\Http\Controllers\Admin\ResumeModerationController::class, 'show'])->name('admin.resumes.show');
+    // Register the export route before the `{resume}` parameter route so the literal
+    // path `admin/resumes/export` does not get captured by the `{resume}` binding.
     Route::get('admin/resumes/export', [\App\Http\Controllers\Admin\ResumeModerationController::class, 'export'])->name('admin.resumes.export');
+    Route::get('admin/resumes/{resume}', [\App\Http\Controllers\Admin\ResumeModerationController::class, 'show'])->name('admin.resumes.show');
     Route::post('admin/resumes/{resume}/approve', [\App\Http\Controllers\Admin\ResumeModerationController::class, 'approve'])->name('admin.resumes.approve');
     Route::post('admin/resumes/{resume}/reject', [\App\Http\Controllers\Admin\ResumeModerationController::class, 'reject'])->name('admin.resumes.reject');
     Route::post('admin/resumes/{resume}/review', [\App\Http\Controllers\Admin\ResumeModerationController::class, 'markReviewed'])->name('admin.resumes.mark_reviewed');

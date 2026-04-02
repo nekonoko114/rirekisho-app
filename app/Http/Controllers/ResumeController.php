@@ -8,10 +8,13 @@ use App\Models\Resume;
 use App\Models\ResumeHistory;
 use App\Models\ResumeLicense;
 use App\Models\ResumeProfile;
+use App\Services\ResumeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Modifiers\CoverModifier;
 
 class ResumeController extends Controller
 {
@@ -37,105 +40,109 @@ class ResumeController extends Controller
         return view('resume.index', compact('resumes'));
     }
 
+    /**
+     * Export resumes as CSV. Admins export all; normal users export their own.
+     */
+    public function export()
+    {
+        $user = Auth::user();
+
+        $query = Resume::orderBy('id', 'desc');
+
+        $isAdminUser = ($user && method_exists($user, 'isAdmin') && $user->isAdmin());
+        if (! $isAdminUser) {
+            if (! $user) {
+                return redirect()->route('login');
+            }
+            $query->where('user_id', $user->id);
+        }
+
+        $resumes = $query->get();
+
+        $filename = 'resumes-'.date('YmdHis').'.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+        ];
+
+        $callback = function () use ($resumes) {
+            $out = fopen('php://output', 'w');
+            // Write UTF-8 BOM for Excel compatibility
+            fwrite($out, "\xEF\xBB\xBF");
+
+            // header row: include main resume fields (omit 'status' and aggregated relation strings)
+            fputcsv($out, [
+                'ID', '氏名', 'フリガナ', '生年月日', '性別', '電話番号', '連絡先電話番号',
+                'メール', '郵便番号', '住所', '連絡先郵便番号', '連絡先住所',
+                '作成日', '更新日', '公開トークン', '確認日時', '確認者ID',
+            ]);
+
+            foreach ($resumes as $r) {
+                $profile = $r->profile;
+
+                fputcsv($out, [
+                    $r->id,
+                    $r->name,
+                    $r->furigana ?? '',
+                    optional($r->birth_date)->format('Y-m-d') ?? '',
+                    $r->gender ?? '',
+                    $r->phone ?? '',
+                    $r->contact_phone ?? '',
+                    $r->email ?? ($r->user ? $r->user->email : ''),
+                    $r->address_postal ?? '',
+                    $r->address ?? '',
+                    $r->contact_postal ?? '',
+                    $r->contact_address ?? '',
+                    optional($r->created_at)->format('Y-m-d H:i:s') ?? '',
+                    optional($r->updated_at)->format('Y-m-d H:i:s') ?? '',
+                    $r->public_token ?? '',
+                    optional($r->reviewed_at)->format('Y-m-d H:i:s') ?? '',
+                    $r->reviewed_by ?? '',
+                ]);
+            }
+
+            fclose($out);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
     public function store(ResumeStoreRequest $request)
     {
         $validated = $request->validated();
 
         if ($request->hasFile('photo')) {
-            $path = $request->file('photo')->store('photos', 'public');
-            $validated['photo_path'] = $path;
+            // optimize image (fit to 800x800, quality 85) and store under public disk
+            $driverClass = extension_loaded('imagick') ? \Intervention\Image\Drivers\Imagick\Driver::class : \Intervention\Image\Drivers\Gd\Driver::class;
+            Log::debug('Image driverClass (store): '.$driverClass);
+            $manager = new ImageManager($driverClass);
+            $img = $manager->read($request->file('photo')->getRealPath());
+            // Use CoverModifier to crop/resize to portrait (300x420) centered
+            $img->modify(new CoverModifier(300, 420, 'center'));
+            $filename = 'photos/' . uniqid('', true) . '.jpg';
+            $full = storage_path('app/public/' . $filename);
+            $img->save($full, 85);
+            $validated['photo_path'] = $filename;
         }
 
         // Attach user_id if authenticated, otherwise generate a public token
         if ($request->user()) {
             $validated['user_id'] = $request->user()->id;
         } else {
-            $validated['public_token'] = bin2hex(\random_bytes(16));
+            // generate unique public token with collision avoidance
+            do {
+                $token = bin2hex(random_bytes(16));
+            } while (Resume::where('public_token', $token)->exists());
+            $validated['public_token'] = $token;
         }
 
         $resume = Resume::create($validated);
 
-        // histories: accept multiple input shapes. Merge any available arrays (legacy 'histories',
-        // or split sections 'histories_education' and 'histories_work') so the controller is robust
-        // against frontend naming differences.
-        $historiesInput = [];
-        $historiesInput = array_merge(
-            $historiesInput,
-            (array) $request->input('histories', []),
-            (array) $request->input('histories_education', []),
-            (array) $request->input('histories_work', [])
-        );
+        // delegate creation of histories/licenses/profile to service
+        app(ResumeService::class)->createFromRequest($resume, $request);
 
-        if (! empty($historiesInput)) {
-            foreach ($historiesInput as $i => $h) {
-                if (empty($h['description']) && empty($h['year']) && empty($h['month'])) {
-                    continue;
-                }
-                ResumeHistory::create([
-                    'resume_id' => $resume->id,
-                    'year' => $h['year'] ?? null,
-                    'month' => $h['month'] ?? null,
-                    'type' => $h['type'] ?? 'education',
-                    'description' => $h['description'] ?? null,
-                    'sort_order' => $i,
-                ]);
-            }
-        }
-
-        // licenses: array or simple textarea
-        $licensesInput = $request->input('licenses', []);
-        if (! empty($licensesInput)) {
-            foreach ($licensesInput as $i => $l) {
-                if (empty($l['name'])) {
-                    continue;
-                }
-                ResumeLicense::create([
-                    'resume_id' => $resume->id,
-                    'year' => $l['year'] ?? null,
-                    'month' => $l['month'] ?? null,
-                    'name' => $l['name'] ?? null,
-                    'details' => $l['details'] ?? null,
-                ]);
-            }
-        } else {
-            $licensesText = $request->input('licenses_text', '');
-            if (! empty(trim($licensesText))) {
-                $lines = preg_split('/\r\n|\r|\n/', $licensesText);
-                foreach ($lines as $i => $line) {
-                    $line = trim($line);
-                    if ($line === '') {
-                        continue;
-                    }
-                    if (preg_match('/^(\d{4})[^0-9]*(\d{1,2})?\s*(.*)$/u', $line, $m)) {
-                        $year = $m[1];
-                        $month = ! empty($m[2]) ? $m[2] : null;
-                        $rest = trim($m[3]);
-                    } else {
-                        $year = null;
-                        $month = null;
-                        $rest = $line;
-                    }
-                    ResumeLicense::create([
-                        'resume_id' => $resume->id,
-                        'year' => $year,
-                        'month' => $month,
-                        'name' => $rest,
-                        'details' => null,
-                    ]);
-                }
-            }
-        }
-
-        // profile
-        ResumeProfile::create([
-            'resume_id' => $resume->id,
-            'motivation' => $validated['motivation'] ?? null,
-            'personal_requests' => $validated['personal_requests'] ?? null,
-        ]);
-
-        // If guest created it, provide a public link containing the token
         if (! $request->user()) {
-            // Redirect guest directly to the public page with token
             return redirect()->route('resumes.show', ['resume' => $resume->id, 'token' => $resume->public_token])->with('status', '履歴書を保存しました');
         }
 
@@ -154,14 +161,8 @@ class ResumeController extends Controller
         // - logged-in admin
         // - or public token matches for guest-created resumes
         if ($user) {
-            // Allow if owner or admin. Note: allow admin even if resume->user_id is null (guest-created resumes).
-            $isOwner = ($resume->user_id && $resume->user_id === $user->id);
-            $isAdmin = (method_exists($user, 'isAdmin') && $user->isAdmin());
-            if ($isOwner || $isAdmin) {
-                return view('resume.show', compact('resume'));
-            }
-            // logged-in but not owner/admin -> forbidden
-            abort(403, 'この履歴書を表示する権限がありません');
+            $this->authorize('view', $resume);
+            return view('resume.show', compact('resume'));
         }
 
         // If resume has public_token and token matches, allow (guest access)
@@ -183,12 +184,7 @@ class ResumeController extends Controller
         $token = request()->query('token');
 
         if ($user) {
-            // Allow owner or admin (admin allowed even for guest-created resumes)
-            $isOwner = ($resume->user_id && $resume->user_id === $user->id);
-            $isAdmin = (method_exists($user, 'isAdmin') && $user->isAdmin());
-            if (! ($isOwner || $isAdmin)) {
-                abort(403, 'この履歴書を表示する権限がありません');
-            }
+            $this->authorize('view', $resume);
         } else {
             if (! ($resume->public_token && $token && \hash_equals($resume->public_token, $token))) {
                 return redirect()->route('login');
@@ -198,7 +194,43 @@ class ResumeController extends Controller
         // Render the same view but instruct it we're rendering for PDF (disable print button)
         $html = view('resume.show', ['resume' => $resume, 'forPdf' => true])->render();
 
-        // Prefer Snappy if fully available (bindings present and Knp class exists)
+        $filename = 'resume-'.$resume->id.'.pdf';
+        $pdfZoom = 0.75;
+
+        // Priority 1: External PDF service (works on shared hosting without wkhtmltopdf)
+        $pdfServiceEnabled = config('services.pdf.enabled', false);
+        Log::info('PDF service enabled: ' . ($pdfServiceEnabled ? 'true' : 'false'));
+
+        if ($pdfServiceEnabled) {
+            try {
+                Log::info('Attempting external PDF generation for resume ' . $resume->id);
+                $externalPdf = app(\App\Services\ExternalPdfService::class);
+                $pdfContent = $externalPdf->generateFromHtml($html, [
+                    'filename' => $filename,
+                    'zoom' => $pdfZoom,
+                ]);
+
+                if ($pdfContent) {
+                    Log::info('External PDF generation successful for resume ' . $resume->id);
+                    Log::info('PDF filename: ' . $filename);
+                    Log::info('PDF size: ' . strlen($pdfContent) . ' bytes');
+                    Log::info('Content-Disposition header: attachment; filename="'.$filename.'"');
+
+                    $response = response($pdfContent, 200, [
+                        'Content-Type' => 'application/pdf',
+                        'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+                    ]);
+
+                    Log::info('Response headers: ' . json_encode($response->headers->all()));
+                    return $response;
+                }
+            } catch (\Throwable $e) {
+                Log::error('External PDF generation failed for resume '.$resume->id.': '.$e->getMessage());
+                // fall through to next option
+            }
+        }
+
+        // Priority 2: Snappy (if wkhtmltopdf is available locally)
         try {
             $useSnappy = app()->bound('snappy.pdf') && class_exists('\Knp\\Snappy\\Pdf');
         } catch (\Throwable $e) {
@@ -208,7 +240,11 @@ class ResumeController extends Controller
         if ($useSnappy) {
             try {
                 $pdf = app('snappy.pdf.wrapper')->loadHTML($html);
-                $filename = 'resume-'.$resume->id.'.pdf';
+                try {
+                    $pdf->setOption('zoom', $pdfZoom);
+                } catch (\Throwable $e) {
+                    Log::warning('Unable to set snappy zoom option: '.$e->getMessage());
+                }
 
                 return response($pdf->output(), 200, [
                     'Content-Type' => 'application/pdf',
@@ -216,15 +252,18 @@ class ResumeController extends Controller
                 ]);
             } catch (\Throwable $e) {
                 Log::error('PDF generation (snappy) failed for resume '.$resume->id.': '.$e->getMessage());
-                // fall through to fallback generator
+                // fall through to next option
             }
         }
 
-        // Fallback: use local PdfGenerator (direct wkhtmltopdf call)
+        // Priority 3: Local wkhtmltopdf via PdfGenerator
         try {
+            $cfg = config('snappy.pdf.options', []);
+            $cfg['zoom'] = $pdfZoom;
+            config(['snappy.pdf.options' => $cfg]);
+
             $generator = new \App\Services\PdfGenerator;
             $pdfContent = $generator->outputFromHtml($html);
-            $filename = 'resume-'.$resume->id.'.pdf';
 
             return response($pdfContent, 200, [
                 'Content-Type' => 'application/pdf',
@@ -233,7 +272,7 @@ class ResumeController extends Controller
         } catch (\Throwable $e) {
             Log::error('PDF generation fallback failed for resume '.$resume->id.': '.$e->getMessage());
 
-            // Final fallback: return HTML so the user can still view/print from the browser.
+            // Final fallback: return HTML with print-friendly CSS
             return response($html, 200, [
                 'Content-Type' => 'text/html; charset=UTF-8',
                 'X-PDF-Error' => 'true',
@@ -244,10 +283,7 @@ class ResumeController extends Controller
     public function edit(Resume $resume)
     {
         $user = Auth::user();
-        // allow owner or admin
-        if (! ($user && (($resume->user_id && $resume->user_id === $user->id) || (method_exists($user, 'isAdmin') && $user->isAdmin())))) {
-            abort(403, 'この履歴書を編集する権限がありません');
-        }
+        $this->authorize('update', $resume);
 
         $resume->load(['histories', 'licenses', 'profile']);
 
@@ -256,6 +292,8 @@ class ResumeController extends Controller
 
     public function update(ResumeUpdateRequest $request, Resume $resume)
     {
+        $this->authorize('update', $resume);
+
         $validated = $request->validated();
 
         if ($request->hasFile('photo')) {
@@ -263,68 +301,22 @@ class ResumeController extends Controller
             if ($resume->photo_path) {
                 Storage::disk('public')->delete($resume->photo_path);
             }
-            $path = $request->file('photo')->store('photos', 'public');
-            $validated['photo_path'] = $path;
+            $driverClass = extension_loaded('imagick') ? \Intervention\Image\Drivers\Imagick\Driver::class : \Intervention\Image\Drivers\Gd\Driver::class;
+            Log::debug('Image driverClass (update): '.$driverClass);
+            $manager = new ImageManager($driverClass);
+            $img = $manager->read($request->file('photo')->getRealPath());
+            // Use CoverModifier to crop/resize to portrait (300x420) centered
+            $img->modify(new CoverModifier(300, 420, 'center'));
+            $filename = 'photos/' . uniqid('', true) . '.jpg';
+            $full = storage_path('app/public/' . $filename);
+            $img->save($full, 85);
+            $validated['photo_path'] = $filename;
         }
 
         $resume->update($validated);
 
-        // replace histories/licenses/profile: delete existing and recreate from request
-        $resume->histories()->delete();
-        $historiesInput = [];
-        $historiesInput = array_merge(
-            $historiesInput,
-            (array) $request->input('histories', []),
-            (array) $request->input('histories_education', []),
-            (array) $request->input('histories_work', [])
-        );
-        if (! empty($historiesInput)) {
-            foreach ($historiesInput as $i => $h) {
-                if (empty($h['description']) && empty($h['year']) && empty($h['month'])) {
-                    continue;
-                }
-                ResumeHistory::create([
-                    'resume_id' => $resume->id,
-                    'year' => $h['year'] ?? null,
-                    'month' => $h['month'] ?? null,
-                    'type' => $h['type'] ?? 'education',
-                    'description' => $h['description'] ?? null,
-                    'sort_order' => $i,
-                ]);
-            }
-        }
-
-        $resume->licenses()->delete();
-        $licensesInput = $request->input('licenses', []);
-        if (! empty($licensesInput)) {
-            foreach ($licensesInput as $i => $l) {
-                if (empty($l['name'])) {
-                    continue;
-                }
-                ResumeLicense::create([
-                    'resume_id' => $resume->id,
-                    'year' => $l['year'] ?? null,
-                    'month' => $l['month'] ?? null,
-                    'name' => $l['name'] ?? null,
-                    'details' => $l['details'] ?? null,
-                ]);
-            }
-        }
-
-        // profile: update or create
-        $profile = $resume->profile;
-        if ($profile) {
-            $profile->update([
-                'motivation' => $validated['motivation'] ?? null,
-                'personal_requests' => $validated['personal_requests'] ?? null,
-            ]);
-        } else {
-            ResumeProfile::create([
-                'resume_id' => $resume->id,
-                'motivation' => $validated['motivation'] ?? null,
-                'personal_requests' => $validated['personal_requests'] ?? null,
-            ]);
-        }
+        // delegate related updates
+        app(ResumeService::class)->updateFromRequest($resume, $request);
 
         return redirect()->route('resumes.show', $resume)->with('status', '履歴書を更新しました');
     }
@@ -334,13 +326,8 @@ class ResumeController extends Controller
      */
     public function revokePublic(Resume $resume)
     {
-        $user = Auth::user();
-        $isOwner = ($user && $resume->user_id && $resume->user_id === $user->id);
-        $isAdmin = ($user && method_exists($user, 'isAdmin') && $user->isAdmin());
-        if (! ($isOwner || $isAdmin)) {
-            abort(403, 'この操作を行う権限がありません');
-        }
 
+        $this->authorize('revokePublic', $resume);
         $resume->public_token = null;
         $resume->save();
 

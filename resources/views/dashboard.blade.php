@@ -28,7 +28,7 @@
                 <div class="col-12 col-md-8">
                     <div class="card">
                         <div class="card-body">
-                            <h5 class="card-title">最近の履歴書（5件）</h5>
+                            <h5 class="card-title">最近の履歴書</h5>
                             @if(isset($recentResumes) && $recentResumes->count())
                                 <div class="table-responsive">
                                     <table class="table table-sm mt-3 mb-0">
