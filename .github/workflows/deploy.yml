@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - master
+      - feat/ci-add-workflow
 
 jobs:
   deploy:
