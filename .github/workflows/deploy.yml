@@ -6,6 +6,7 @@ on:
       - main
       - master
       - feat/ci-add-workflow
+  workflow_dispatch:
 
 jobs:
   deploy:
