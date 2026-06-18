@@ -8,13 +8,55 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
   <!-- form-specific CSS (overrides) -->
     <link rel="stylesheet" href="{{ asset('form.css') }}">
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <style>
+      /* Bootstrapのスタイルをダークモードで強制上書きするためのメディアクエリ */
+      @media (prefers-color-scheme: dark) {
+        body {
+          color: rgba(255, 255, 255, 0.9) !important;
+        }
+        .card-title, .form-label {
+          color: rgba(255, 255, 255, 0.9) !important;
+        }
+        .text-muted, .form-text, small {
+          color: rgba(255, 255, 255, 0.6) !important;
+        }
+        .form-control, .form-select, input[type="file"], textarea {
+          background-color: rgba(15, 23, 42, 0.6) !important;
+          color: white !important;
+          border-color: rgba(71, 85, 105, 0.5) !important;
+        }
+        .form-control::placeholder {
+          color: rgba(255, 255, 255, 0.4) !important;
+        }
+        .btn-outline-secondary {
+          color: rgba(255, 255, 255, 0.8);
+          border-color: rgba(255, 255, 255, 0.3);
+        }
+        .btn-outline-secondary:hover {
+          background-color: rgba(255, 255, 255, 0.1);
+          color: white;
+        }
+        hr {
+          border-color: rgba(255, 255, 255, 0.2) !important;
+        }
+      }
+    </style>
   </head>
-  <body>
-    <div class="container py-4">
-  <form method="post" class="resume-form" action="{{ route('resumes.store') }}" enctype="multipart/form-data">
+  <body class="antialiased bg-slate-50 dark:bg-slate-900 text-gray-800 dark:text-gray-100 selection:bg-indigo-500 selection:text-white relative overflow-x-hidden">
+    <!-- Geometric Grid Background -->
+    <div class="fixed inset-0 -z-20 h-full w-full bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_80%_80%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none"></div>
+    
+    <!-- Glassmorphism blobs -->
+    <div class="fixed top-0 left-1/4 w-96 h-96 bg-indigo-500/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob dark:mix-blend-screen -z-10 pointer-events-none"></div>
+    <div class="fixed top-0 right-1/4 w-96 h-96 bg-emerald-500/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000 dark:mix-blend-screen -z-10 pointer-events-none"></div>
+    <div class="fixed -bottom-32 left-1/2 w-96 h-96 bg-purple-500/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-4000 dark:mix-blend-screen -z-10 pointer-events-none"></div>
+
+    <div class="container py-4 relative z-10">
+      <form method="post" class="resume-form" action="{{ route('resumes.store') }}" enctype="multipart/form-data">
         @csrf
-        <div class="card shadow-sm">
-          <div class="card-body">
+        <div class="card shadow-2xl border border-white/50 dark:border-slate-700/50 bg-white/40 dark:bg-slate-800/40 backdrop-blur-xl sm:rounded-2xl" style="background-color: transparent !important;">
+          <div class="card-body p-4 sm:p-6">
             <div class="d-flex justify-content-between align-items-start mb-3">
               <div>
                 <h3 class="card-title mb-0">履歴書作成</h3>

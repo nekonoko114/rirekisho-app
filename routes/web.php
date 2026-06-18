@@ -20,11 +20,16 @@ Route::middleware('auth')->group(function () {
     Route::get('resumes', [ResumeController::class, 'index'])->name('resumes.index');
     // Revoke public token (owner or admin)
     Route::post('resumes/{resume}/revoke-public', [ResumeController::class, 'revokePublic'])->name('resumes.revoke_public');
+
+    // Authenticated users can edit and delete their own resumes (controlled by Policy)
+    Route::get('resumes/{resume}/edit', [ResumeController::class, 'edit'])->name('resumes.edit');
+    Route::match(['put', 'patch'], 'resumes/{resume}', [ResumeController::class, 'update'])->name('resumes.update');
+    Route::delete('resumes/{resume}', [ResumeController::class, 'destroy'])->name('resumes.destroy');
 });
 
 require __DIR__.'/auth.php';
 
-// Resume routes: guests can create/store/show; index/edit/update/destroy require admin.
+// Resume routes: guests can create/store/show
 Route::get('resumes/create', [ResumeController::class, 'create'])->name('resumes.create');
 Route::post('resumes', [ResumeController::class, 'store'])->name('resumes.store');
 // Register the export route before the `{resume}` parameter route so the literal
@@ -37,12 +42,8 @@ Route::get('resumes/{resume}/pdf', [ResumeController::class, 'pdf'])->name('resu
 
 // Debug routes removed. Use authenticated admin flows for testing instead.
 
-// Authenticated users can manage their own resumes; admins can manage all.
-// Apply the admin middleware class directly to avoid needing a Kernel alias.
+// Apply the admin middleware for moderation and admin dashboard
 Route::middleware(['auth', 'admin'])->group(function () {
-    Route::get('resumes/{resume}/edit', [ResumeController::class, 'edit'])->name('resumes.edit');
-    Route::match(['put', 'patch'], 'resumes/{resume}', [ResumeController::class, 'update'])->name('resumes.update');
-    Route::delete('resumes/{resume}', [ResumeController::class, 'destroy'])->name('resumes.destroy');
 
     // Admin: resume moderation
     Route::get('admin/resumes', [\App\Http\Controllers\Admin\ResumeModerationController::class, 'index'])->name('admin.resumes.index');
