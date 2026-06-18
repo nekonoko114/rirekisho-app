@@ -38,9 +38,7 @@ jobs:
         with:
           key: ${{ secrets.XSERVER_SSH_KEY }}
           known_hosts: 'just-a-placeholder-so-we-dont-get-errors'
-          
-      - name: Adding Known Hosts
-        run: ssh-keyscan -p ${{ secrets.XSERVER_PORT }} -H ${{ secrets.XSERVER_HOST }} >> ~/.ssh/known_hosts
+
 
       - name: Deploy files via rsync
         run: |
