@@ -1,0 +1,68 @@
+name: Deploy to XSERVER
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+
+      - name: Install Composer dependencies
+        run: composer install --no-dev --optimize-autoloader
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install NPM dependencies and build
+        run: |
+          npm ci
+          npm run build
+
+      - name: Setup SSH Key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.XSERVER_SSH_KEY }}
+          known_hosts: 'just-a-placeholder-so-we-dont-get-errors'
+          
+      - name: Adding Known Hosts
+        run: ssh-keyscan -p ${{ secrets.XSERVER_PORT }} -H ${{ secrets.XSERVER_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy files via rsync
+        run: |
+          rsync -avz --delete \
+            --exclude '.git' \
+            --exclude '.github' \
+            --exclude 'node_modules' \
+            --exclude '/storage/app/public/' \
+            --exclude '/storage/framework/' \
+            --exclude '/storage/logs/' \
+            --exclude '.env' \
+            ./ ${{ secrets.XSERVER_USER }}@${{ secrets.XSERVER_HOST }}:~/resume-app/
+
+      - name: Run post-deployment artisan commands
+        run: |
+          ssh -p ${{ secrets.XSERVER_PORT }} ${{ secrets.XSERVER_USER }}@${{ secrets.XSERVER_HOST }} << 'EOF'
+            cd ~/resume-app
+            # Generate config and route cache
+            php artisan cache:clear
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+            
+            # Safely run migrations
+            php artisan migrate --force
+          EOF
