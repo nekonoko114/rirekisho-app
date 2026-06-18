@@ -65,11 +65,11 @@ jobs:
           ssh -p ${{ secrets.XSERVER_PORT }} -o StrictHostKeyChecking=no -o PubkeyAcceptedAlgorithms=+ssh-rsa -o HostKeyAlgorithms=+ssh-rsa ${{ secrets.XSERVER_USER }}@${{ secrets.XSERVER_HOST }} << 'EOF'
             cd ~/resume-app
             # Generate config and route cache
-            php artisan cache:clear
-            php artisan config:cache
-            php artisan route:cache
-            php artisan view:cache
+            php8.2 artisan cache:clear
+            php8.2 artisan config:cache
+            php8.2 artisan route:cache
+            php8.2 artisan view:cache
             
             # Safely run migrations
-            php artisan migrate --force
+            php8.2 artisan migrate --force
           EOF
