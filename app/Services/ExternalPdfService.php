@@ -14,8 +14,6 @@ class ExternalPdfService
     /**
      * Generate PDF from HTML using external service
      *
-     * @param string $html
-     * @param array $options
      * @return string|null PDF binary content or null on failure
      */
     public function generateFromHtml(string $html, array $options = []): ?string
@@ -29,11 +27,13 @@ class ExternalPdfService
                 case 'pdfshift':
                     return $this->generateWithPdfShift($html, $options);
                 default:
-                    Log::error('Unknown PDF service provider: ' . $service);
+                    Log::error('Unknown PDF service provider: '.$service);
+
                     return null;
             }
         } catch (\Throwable $e) {
-            Log::error('External PDF generation failed: ' . $e->getMessage());
+            Log::error('External PDF generation failed: '.$e->getMessage());
+
             return null;
         }
     }
@@ -41,10 +41,6 @@ class ExternalPdfService
     /**
      * Generate PDF using html2pdf.app
      * Free tier: 100 requests/day
-     *
-     * @param string $html
-     * @param array $options
-     * @return string|null
      */
     protected function generateWithHtml2Pdf(string $html, array $options = []): ?string
     {
@@ -75,8 +71,8 @@ class ExternalPdfService
             'Content-Type' => 'application/json',
         ];
 
-        if (!empty($apiKey)) {
-            $headers['Authorization'] = 'Bearer ' . $apiKey;
+        if (! empty($apiKey)) {
+            $headers['Authorization'] = 'Bearer '.$apiKey;
         }
 
         $response = Http::timeout(60)
@@ -87,14 +83,15 @@ class ExternalPdfService
             $body = $response->body();
 
             // Log response details for debugging
-            Log::info('html2pdf.app response status: ' . $response->status());
-            Log::info('html2pdf.app response headers: ' . json_encode($response->headers()));
-            Log::info('html2pdf.app response size: ' . strlen($body) . ' bytes');
-            Log::info('html2pdf.app response starts with: ' . substr($body, 0, 100));
+            Log::info('html2pdf.app response status: '.$response->status());
+            Log::info('html2pdf.app response headers: '.json_encode($response->headers()));
+            Log::info('html2pdf.app response size: '.strlen($body).' bytes');
+            Log::info('html2pdf.app response starts with: '.substr($body, 0, 100));
 
             // Check if response is PDF (starts with %PDF)
             if (strpos($body, '%PDF') === 0) {
                 Log::info('Valid PDF binary received');
+
                 return $body;
             }
 
@@ -116,20 +113,18 @@ class ExternalPdfService
             }
 
             Log::error('html2pdf.app returned unexpected format');
+
             return null;
         }
 
-        Log::error('html2pdf.app API failed: ' . $response->status() . ' - ' . $response->body());
+        Log::error('html2pdf.app API failed: '.$response->status().' - '.$response->body());
+
         return null;
     }
 
     /**
      * Generate PDF using PDFShift
      * Free tier: 500 conversions/month
-     *
-     * @param string $html
-     * @param array $options
-     * @return string|null
      */
     protected function generateWithPdfShift(string $html, array $options = []): ?string
     {
@@ -137,6 +132,7 @@ class ExternalPdfService
 
         if (empty($apiKey)) {
             Log::error('PDFShift API key not configured');
+
             return null;
         }
 
@@ -156,7 +152,8 @@ class ExternalPdfService
             return $response->body();
         }
 
-        Log::error('PDFShift API failed: ' . $response->status() . ' - ' . $response->body());
+        Log::error('PDFShift API failed: '.$response->status().' - '.$response->body());
+
         return null;
     }
 }

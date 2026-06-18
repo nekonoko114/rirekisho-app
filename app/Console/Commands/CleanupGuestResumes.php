@@ -2,10 +2,10 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use App\Models\Resume;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 class CleanupGuestResumes extends Command
 {
@@ -35,6 +35,7 @@ class CleanupGuestResumes extends Command
         $count = $query->count();
         if ($count === 0) {
             $this->info('No guest resumes to delete.');
+
             return 0;
         }
 

@@ -128,9 +128,10 @@ class ResumeService
                     ]);
                 }
                 // when using text fallback, remove all previous licenses
-                $existing->keys()->each(function ($id) use ($resume) {
+                $existing->keys()->each(function ($id) {
                     ResumeLicense::where('id', $id)->delete();
                 });
+
                 return;
             }
         }
@@ -205,6 +206,7 @@ class ResumeService
                     'details' => $l['details'] ?? null,
                 ]);
             }
+
             return;
         }
 

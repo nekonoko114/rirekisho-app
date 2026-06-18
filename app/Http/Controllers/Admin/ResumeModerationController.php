@@ -92,7 +92,7 @@ class ResumeModerationController extends Controller
 
         $resumes = $query->get();
 
-        $filename = 'resumes-' . now()->format('Ymd_His') . '.csv';
+        $filename = 'resumes-'.now()->format('Ymd_His').'.csv';
         $headers = [
             'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",

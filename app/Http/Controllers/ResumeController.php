@@ -5,11 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ResumeStoreRequest;
 use App\Http\Requests\ResumeUpdateRequest;
 use App\Models\Resume;
-use App\Models\ResumeHistory;
-use App\Models\ResumeLicense;
-use App\Models\ResumeProfile;
 use App\Services\ResumeService;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -120,8 +116,8 @@ class ResumeController extends Controller
             $img = $manager->read($request->file('photo')->getRealPath());
             // Use CoverModifier to crop/resize to portrait (300x420) centered
             $img->modify(new CoverModifier(300, 420, 'center'));
-            $filename = 'photos/' . uniqid('', true) . '.jpg';
-            $full = storage_path('app/public/' . $filename);
+            $filename = 'photos/'.uniqid('', true).'.jpg';
+            $full = storage_path('app/public/'.$filename);
             $img->save($full, 85);
             $validated['photo_path'] = $filename;
         }
@@ -162,6 +158,7 @@ class ResumeController extends Controller
         // - or public token matches for guest-created resumes
         if ($user) {
             $this->authorize('view', $resume);
+
             return view('resume.show', compact('resume'));
         }
 
@@ -199,11 +196,11 @@ class ResumeController extends Controller
 
         // Priority 1: External PDF service (works on shared hosting without wkhtmltopdf)
         $pdfServiceEnabled = config('services.pdf.enabled', false);
-        Log::info('PDF service enabled: ' . ($pdfServiceEnabled ? 'true' : 'false'));
+        Log::info('PDF service enabled: '.($pdfServiceEnabled ? 'true' : 'false'));
 
         if ($pdfServiceEnabled) {
             try {
-                Log::info('Attempting external PDF generation for resume ' . $resume->id);
+                Log::info('Attempting external PDF generation for resume '.$resume->id);
                 $externalPdf = app(\App\Services\ExternalPdfService::class);
                 $pdfContent = $externalPdf->generateFromHtml($html, [
                     'filename' => $filename,
@@ -211,9 +208,9 @@ class ResumeController extends Controller
                 ]);
 
                 if ($pdfContent) {
-                    Log::info('External PDF generation successful for resume ' . $resume->id);
-                    Log::info('PDF filename: ' . $filename);
-                    Log::info('PDF size: ' . strlen($pdfContent) . ' bytes');
+                    Log::info('External PDF generation successful for resume '.$resume->id);
+                    Log::info('PDF filename: '.$filename);
+                    Log::info('PDF size: '.strlen($pdfContent).' bytes');
                     Log::info('Content-Disposition header: attachment; filename="'.$filename.'"');
 
                     $response = response($pdfContent, 200, [
@@ -221,7 +218,8 @@ class ResumeController extends Controller
                         'Content-Disposition' => 'attachment; filename="'.$filename.'"',
                     ]);
 
-                    Log::info('Response headers: ' . json_encode($response->headers->all()));
+                    Log::info('Response headers: '.json_encode($response->headers->all()));
+
                     return $response;
                 }
             } catch (\Throwable $e) {
@@ -307,8 +305,8 @@ class ResumeController extends Controller
             $img = $manager->read($request->file('photo')->getRealPath());
             // Use CoverModifier to crop/resize to portrait (300x420) centered
             $img->modify(new CoverModifier(300, 420, 'center'));
-            $filename = 'photos/' . uniqid('', true) . '.jpg';
-            $full = storage_path('app/public/' . $filename);
+            $filename = 'photos/'.uniqid('', true).'.jpg';
+            $full = storage_path('app/public/'.$filename);
             $img->save($full, 85);
             $validated['photo_path'] = $filename;
         }

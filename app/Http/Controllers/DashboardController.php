@@ -38,13 +38,13 @@ class DashboardController extends Controller
             // Efficiently fetch counts grouped by date to avoid N+1 queries
             $start7 = $today->copy()->subDays(6)->startOfDay();
             $end7 = $today->copy()->endOfDay();
-            $resumes7Grouped = Resume::selectRaw("DATE(created_at) as date, COUNT(*) as cnt")
+            $resumes7Grouped = Resume::selectRaw('DATE(created_at) as date, COUNT(*) as cnt')
                 ->whereBetween('created_at', [$start7, $end7])
                 ->groupBy('date')
                 ->pluck('cnt', 'date')
                 ->toArray();
 
-            $users7Grouped = User::selectRaw("DATE(created_at) as date, COUNT(*) as cnt")
+            $users7Grouped = User::selectRaw('DATE(created_at) as date, COUNT(*) as cnt')
                 ->whereBetween('created_at', [$start7, $end7])
                 ->groupBy('date')
                 ->pluck('cnt', 'date')
@@ -52,13 +52,13 @@ class DashboardController extends Controller
 
             $start30 = $today->copy()->subDays(29)->startOfDay();
             $end30 = $today->copy()->endOfDay();
-            $resumes30Grouped = Resume::selectRaw("DATE(created_at) as date, COUNT(*) as cnt")
+            $resumes30Grouped = Resume::selectRaw('DATE(created_at) as date, COUNT(*) as cnt')
                 ->whereBetween('created_at', [$start30, $end30])
                 ->groupBy('date')
                 ->pluck('cnt', 'date')
                 ->toArray();
 
-            $users30Grouped = User::selectRaw("DATE(created_at) as date, COUNT(*) as cnt")
+            $users30Grouped = User::selectRaw('DATE(created_at) as date, COUNT(*) as cnt')
                 ->whereBetween('created_at', [$start30, $end30])
                 ->groupBy('date')
                 ->pluck('cnt', 'date')
