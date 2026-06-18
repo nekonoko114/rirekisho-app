@@ -34,27 +34,27 @@ jobs:
           npm run build
 
       - name: Setup SSH Key
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.XSERVER_SSH_KEY }}
-
-      - name: Add StrictHostKeyChecking to ssh config
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.XSERVER_SSH_KEY }}
         run: |
           mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
           echo "Host *" > ~/.ssh/config
           echo "  StrictHostKeyChecking no" >> ~/.ssh/config
           echo "  PubkeyAcceptedAlgorithms +ssh-rsa" >> ~/.ssh/config
           echo "  HostKeyAlgorithms +ssh-rsa" >> ~/.ssh/config
+          echo "  IdentityFile ~/.ssh/id_rsa" >> ~/.ssh/config
+          echo "  IdentitiesOnly yes" >> ~/.ssh/config
           chmod 600 ~/.ssh/config
-          ssh-keyscan -p ${{ secrets.XSERVER_PORT }} ${{ secrets.XSERVER_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
 
       - name: Test SSH connection
         run: |
-          ssh -v -p ${{ secrets.XSERVER_PORT }} -o StrictHostKeyChecking=no -o PubkeyAcceptedAlgorithms=+ssh-rsa -o HostKeyAlgorithms=+ssh-rsa ${{ secrets.XSERVER_USER }}@${{ secrets.XSERVER_HOST }} "echo SSH接続テスト成功"
+          ssh -v -p ${{ secrets.XSERVER_PORT }} ${{ secrets.XSERVER_USER }}@${{ secrets.XSERVER_HOST }} "echo SSH接続テスト成功"
 
       - name: Deploy files via rsync
         run: |
-          rsync -avz -e "ssh -p ${{ secrets.XSERVER_PORT }} -o StrictHostKeyChecking=no -o PubkeyAcceptedAlgorithms=+ssh-rsa -o HostKeyAlgorithms=+ssh-rsa" --delete \
+          rsync -avz -e "ssh -p ${{ secrets.XSERVER_PORT }}" --delete \
             --exclude '.git' \
             --exclude '.github' \
             --exclude 'node_modules' \
