@@ -44,7 +44,7 @@ jobs:
 
       - name: Deploy files via rsync
         run: |
-          rsync -avz -e "ssh -p ${{ secrets.XSERVER_PORT }}" --delete \
+          rsync -avz -e "ssh -p ${{ secrets.XSERVER_PORT }} -o StrictHostKeyChecking=no -o PubkeyAcceptedAlgorithms=+ssh-rsa -o HostKeyAlgorithms=+ssh-rsa" --delete \
             --exclude '.git' \
             --exclude '.github' \
             --exclude 'node_modules' \
@@ -56,7 +56,7 @@ jobs:
 
       - name: Run post-deployment artisan commands
         run: |
-          ssh -p ${{ secrets.XSERVER_PORT }} ${{ secrets.XSERVER_USER }}@${{ secrets.XSERVER_HOST }} << 'EOF'
+          ssh -p ${{ secrets.XSERVER_PORT }} -o StrictHostKeyChecking=no -o PubkeyAcceptedAlgorithms=+ssh-rsa -o HostKeyAlgorithms=+ssh-rsa ${{ secrets.XSERVER_USER }}@${{ secrets.XSERVER_HOST }} << 'EOF'
             cd ~/resume-app
             # Generate config and route cache
             php artisan cache:clear
