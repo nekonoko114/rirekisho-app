@@ -33,6 +33,14 @@
     .text-muted, small {
         color: rgba(148, 163, 184, 0.9) !important;
     }
+    .form-control, .form-select, input[type="search"], input[type="text"], input[type="email"], input[type="password"] {
+        background-color: rgba(15, 23, 42, 0.6) !important;
+        color: white !important;
+        border-color: rgba(71, 85, 105, 0.5) !important;
+    }
+    .form-control::placeholder {
+        color: rgba(255, 255, 255, 0.4) !important;
+    }
     .table {
         color: rgba(248, 250, 252, 0.8) !important;
         --bs-table-bg: transparent;
