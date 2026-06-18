@@ -33,20 +33,16 @@ jobs:
           npm ci
           npm run build
 
-      - name: Setup SSH Key
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.XSERVER_SSH_KEY }}
-        run: |
-          mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          echo "Host *" > ~/.ssh/config
-          echo "  StrictHostKeyChecking no" >> ~/.ssh/config
-          echo "  PubkeyAcceptedAlgorithms +ssh-rsa" >> ~/.ssh/config
-          echo "  HostKeyAlgorithms +ssh-rsa" >> ~/.ssh/config
-          echo "  IdentityFile ~/.ssh/id_rsa" >> ~/.ssh/config
-          echo "  IdentitiesOnly yes" >> ~/.ssh/config
-          chmod 600 ~/.ssh/config
+      - name: Install SSH Key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.XSERVER_SSH_KEY }}
+          known_hosts: 'unnecessary'
+          config: |
+            Host *
+              StrictHostKeyChecking no
+              PubkeyAcceptedAlgorithms +ssh-rsa
+              HostKeyAlgorithms +ssh-rsa
 
       - name: Test SSH connection
         run: |
