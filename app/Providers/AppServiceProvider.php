@@ -31,5 +31,9 @@ class AppServiceProvider extends ServiceProvider
 
         // Register Resume policy so controllers can use $this->authorize()
         Gate::policy(Resume::class, ResumePolicy::class);
+
+        if ($this->app->environment('production')) {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
     }
 }

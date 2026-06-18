@@ -29,3 +29,5 @@ public/*\ 2
 public/hot\ 2
 public/storage\ 2
 *.tar.gz
+*.key
+genesisllc.key

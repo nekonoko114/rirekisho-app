@@ -336,12 +336,7 @@ class ResumeController extends Controller
 
     public function destroy(Resume $resume)
     {
-        $user = Auth::user();
-        $isOwner = ($user && $resume->user_id && $resume->user_id === $user->id);
-        $isAdmin = ($user && method_exists($user, 'isAdmin') && $user->isAdmin());
-        if (! ($isOwner || $isAdmin)) {
-            abort(403, 'この履歴書を削除する権限がありません');
-        }
+        $this->authorize('delete', $resume);
 
         // delete related resources
         if ($resume->photo_path) {
