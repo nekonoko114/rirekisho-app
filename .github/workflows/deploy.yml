@@ -44,7 +44,7 @@ jobs:
 
       - name: Deploy files via rsync
         run: |
-          rsync -avz --delete \
+          rsync -avz -e "ssh -p ${{ secrets.XSERVER_PORT }}" --delete \
             --exclude '.git' \
             --exclude '.github' \
             --exclude 'node_modules' \
