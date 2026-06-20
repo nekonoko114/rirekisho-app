@@ -31,3 +31,13 @@ public/storage\ 2
 *.tar.gz
 *.key
 genesisllc.key
+deploy_key
+deploy_key.pub
+
+DEPLOY.md
+deploy_key
+deploy_key_ed25519
+deploy_key_ed25519.pub
+deploy_key_pem
+deploy_key_pem.pub
+deploy_key.pub
