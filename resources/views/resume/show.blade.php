@@ -2,7 +2,7 @@
 <html lang="ja">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=1200" />
     <link rel="stylesheet" href="{{ asset('css/resume-print.css') }}" />
     @if(isset($forPdf) && $forPdf)
       @php
@@ -14,76 +14,6 @@
       @endif
     @else
       @vite(['resources/js/app.js'])
-      <style>
-        /* レスポンシブ対応: スマホ表示用 */
-        @media screen and (max-width: 768px) {
-          body {
-            margin: 0;
-            padding: 10px;
-            background: #f5f5f5;
-          }
-
-          .rirekisho-container {
-            flex-direction: column;
-            width: 100% !important;
-            max-width: 100% !important;
-            gap: 20px;
-          }
-
-          .page {
-            width: 100% !important;
-            max-width: 100% !important;
-            min-height: auto !important;
-            height: auto !important;
-            padding: 15px !important;
-            box-sizing: border-box;
-          }
-
-          .page-left, .page-right {
-            width: 100% !important;
-          }
-
-          /* テーブルのフォントサイズ調整 */
-          table {
-            font-size: 12px !important;
-          }
-
-          th, td {
-            padding: 6px 4px !important;
-            word-break: break-word;
-          }
-
-          /* 写真ボックスのサイズ調整 */
-          .photo-box {
-            width: 80px !important;
-            height: 112px !important;
-          }
-
-          .photo-box img {
-            width: 80px !important;
-            height: 112px !important;
-          }
-
-          /* タイトルのサイズ調整 */
-          .title {
-            font-size: 20px !important;
-          }
-
-          /* ボタンの調整 */
-          .print-button {
-            padding: 10px 15px !important;
-            font-size: 14px !important;
-          }
-
-          /* PDF生成時はレスポンシブを無効化 */
-          @media print {
-            body, .rirekisho-container, .page {
-              width: auto !important;
-              max-width: none !important;
-            }
-          }
-        }
-      </style>
     @endif
     <title>履歴書プレビュー</title>
   </head>
@@ -221,8 +151,35 @@
             <th class="history-header">学　歴・職　歴</th>
           </tr>
           @php
-            // 全ての履歴（学歴＋職歴）を sort_order で結合して表示
-            $all = $resume->histories->sortBy('sort_order')->values();
+            // 全ての履歴（学歴＋職歴）
+            $educations = $resume->histories->where('type', 'education')->sortBy('sort_order')->values();
+            $works = $resume->histories->where('type', 'work')->sortBy('sort_order')->values();
+            
+            $processedHistories = collect();
+            if ($educations->count() > 0) {
+                $firstDesc = str_replace([' ', '　'], '', $educations->first()->description ?? '');
+                if ($firstDesc !== '学歴') {
+                    $processedHistories->push((object)['year' => '', 'month' => '', 'description' => '学　歴', 'is_header' => true]);
+                } else {
+                    $educations->first()->is_header = true;
+                }
+                foreach ($educations as $edu) {
+                    $processedHistories->push($edu);
+                }
+            }
+            if ($works->count() > 0) {
+                $firstDesc = str_replace([' ', '　'], '', $works->first()->description ?? '');
+                if ($firstDesc !== '職歴') {
+                    $processedHistories->push((object)['year' => '', 'month' => '', 'description' => '職　歴', 'is_header' => true]);
+                } else {
+                    $works->first()->is_header = true;
+                }
+                foreach ($works as $work) {
+                    $processedHistories->push($work);
+                }
+            }
+            $all = $processedHistories;
+
             // 最後に実データがあるインデックスを探す
             $lastFilled = null;
             foreach ($all as $k => $e) {
@@ -252,7 +209,7 @@
                   // strip accidental type prefixes like "education:" or "work:"
                   $desc = preg_replace('/^(education|work):\s*/i', '', (string)$descRaw);
                 @endphp
-                <div class="{{ trim((string)$desc) !== '' ? 'cell-content filled' : 'cell-content' }}">
+                <div class="{{ trim((string)$desc) !== '' ? 'cell-content filled' : 'cell-content' }} {{ isset($item->is_header) && $item->is_header ? 'history-section-title' : '' }}">
                   @if(!is_null($markerIndex) && $i === $markerIndex)
                     {{ $desc }}@if($desc !== '')　@endif<span class="marker">以上</span>
                   @else
@@ -274,7 +231,7 @@
           </tr>
           @php
             // 右カラムには左側に表示した残りの履歴を表示（左で15行使用）
-            $all = $resume->histories->sortBy('sort_order')->values();
+            $all = isset($processedHistories) ? $processedHistories : $resume->histories->sortBy('sort_order')->values();
           @endphp
           @for ($i = 15; $i < 22; $i++)
             @php $item = $all->get($i); @endphp
@@ -287,7 +244,7 @@
               </td>
               <td>
                 @php $descRawR = $item->description ?? ''; $descR = preg_replace('/^(education|work):\s*/i', '', (string)$descRawR); @endphp
-                <div class="{{ trim((string)$descR) !== '' ? 'cell-content filled' : 'cell-content' }}">{{ $descR }}</div>
+                <div class="{{ trim((string)$descR) !== '' ? 'cell-content filled' : 'cell-content' }} {{ isset($item->is_header) && $item->is_header ? 'history-section-title' : '' }}">{{ $descR }}</div>
               </td>
             </tr>
           @endfor
