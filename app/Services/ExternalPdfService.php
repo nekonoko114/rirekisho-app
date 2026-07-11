@@ -82,23 +82,14 @@ class ExternalPdfService
         if ($response->successful()) {
             $body = $response->body();
 
-            // Log response details for debugging
-            Log::info('html2pdf.app response status: '.$response->status());
-            Log::info('html2pdf.app response headers: '.json_encode($response->headers()));
-            Log::info('html2pdf.app response size: '.strlen($body).' bytes');
-            Log::info('html2pdf.app response starts with: '.substr($body, 0, 100));
-
             // Check if response is PDF (starts with %PDF)
             if (strpos($body, '%PDF') === 0) {
-                Log::info('Valid PDF binary received');
-
                 return $body;
             }
 
             // Response might be JSON with PDF URL or base64
             $json = json_decode($body, true);
             if ($json && isset($json['pdf'])) {
-                Log::info('JSON response detected, downloading PDF from URL or decoding base64');
                 // If it's a URL, download it
                 if (filter_var($json['pdf'], FILTER_VALIDATE_URL)) {
                     $pdfResponse = Http::timeout(60)->get($json['pdf']);
