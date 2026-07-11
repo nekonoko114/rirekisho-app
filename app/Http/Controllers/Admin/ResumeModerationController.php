@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Resume;
+use App\Support\CsvResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -41,7 +42,7 @@ class ResumeModerationController extends Controller
     {
         $resume->status = 'approved';
         if (! $resume->public_token) {
-            $resume->public_token = bin2hex(\random_bytes(16));
+            $resume->public_token = Resume::generateUniquePublicToken();
         }
         $resume->reviewed_at = now();
         $resume->reviewed_by = Auth::id();
@@ -90,32 +91,19 @@ class ResumeModerationController extends Controller
             });
         }
 
-        $resumes = $query->get();
+        $rows = $query->get()->map(fn (Resume $r) => [
+            $r->id,
+            $r->name,
+            $r->email ?? ($r->user ? $r->user->email : ''),
+            $r->created_at ? $r->created_at->toDateTimeString() : '',
+            $r->status,
+            $r->public_token,
+        ]);
 
-        $filename = 'resumes-'.now()->format('Ymd_His').'.csv';
-        $headers = [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
-        ];
-
-        $callback = function () use ($resumes) {
-            $out = fopen('php://output', 'w');
-            // BOM for Excel UTF-8
-            fprintf($out, chr(0xEF).chr(0xBB).chr(0xBF));
-            fputcsv($out, ['ID', '氏名', 'メール', '作成日', 'ステータス', '公開トークン']);
-            foreach ($resumes as $r) {
-                fputcsv($out, [
-                    $r->id,
-                    $r->name,
-                    $r->email ?? ($r->user ? $r->user->email : ''),
-                    $r->created_at ? $r->created_at->toDateTimeString() : '',
-                    $r->status,
-                    $r->public_token,
-                ]);
-            }
-            fclose($out);
-        };
-
-        return response()->stream($callback, 200, $headers);
+        return CsvResponse::stream(
+            'resumes-'.now()->format('Ymd_His').'.csv',
+            ['ID', '氏名', 'メール', '作成日', 'ステータス', '公開トークン'],
+            $rows
+        );
     }
 }

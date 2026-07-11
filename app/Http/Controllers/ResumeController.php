@@ -7,12 +7,10 @@ use App\Http\Requests\ResumeStoreRequest;
 use App\Http\Requests\ResumeUpdateRequest;
 use App\Models\Resume;
 use App\Services\PdfExportService;
+use App\Services\ResumePhotoService;
 use App\Services\ResumeService;
+use App\Support\CsvResponse;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
-use Intervention\Image\ImageManager;
-use Intervention\Image\Modifiers\CoverModifier;
 
 class ResumeController extends Controller
 {
@@ -30,8 +28,7 @@ class ResumeController extends Controller
         $query = Resume::withCount(['histories', 'licenses'])->orderBy('id', 'desc');
 
         // If user is not admin, limit to their own resumes
-        $isAdminUser = ($user && method_exists($user, 'isAdmin') && $user->isAdmin());
-        if (! $isAdminUser) {
+        if (! $user->isAdmin()) {
             $query->where('user_id', $user->id);
         }
 
@@ -46,84 +43,48 @@ class ResumeController extends Controller
     public function export()
     {
         $user = Auth::user();
+        if (! $user) {
+            return redirect()->route('login');
+        }
 
         $query = Resume::orderBy('id', 'desc');
-
-        $isAdminUser = ($user && method_exists($user, 'isAdmin') && $user->isAdmin());
-        if (! $isAdminUser) {
-            if (! $user) {
-                return redirect()->route('login');
-            }
+        if (! $user->isAdmin()) {
             $query->where('user_id', $user->id);
         }
 
-        $resumes = $query->get();
+        $rows = $query->get()->map(fn (Resume $r) => [
+            $r->id,
+            $r->name,
+            $r->furigana ?? '',
+            optional($r->birth_date)->format('Y-m-d') ?? '',
+            $r->gender ?? '',
+            $r->phone ?? '',
+            $r->contact_phone ?? '',
+            $r->email ?? ($r->user ? $r->user->email : ''),
+            $r->address_postal ?? '',
+            $r->address ?? '',
+            $r->contact_postal ?? '',
+            $r->contact_address ?? '',
+            optional($r->created_at)->format('Y-m-d H:i:s') ?? '',
+            optional($r->updated_at)->format('Y-m-d H:i:s') ?? '',
+            $r->public_token ?? '',
+            optional($r->reviewed_at)->format('Y-m-d H:i:s') ?? '',
+            $r->reviewed_by ?? '',
+        ]);
 
-        $filename = 'resumes-'.date('YmdHis').'.csv';
-
-        $headers = [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
-        ];
-
-        $callback = function () use ($resumes) {
-            $out = fopen('php://output', 'w');
-            // Write UTF-8 BOM for Excel compatibility
-            fwrite($out, "\xEF\xBB\xBF");
-
-            // header row: include main resume fields (omit 'status' and aggregated relation strings)
-            fputcsv($out, [
-                'ID', '氏名', 'フリガナ', '生年月日', '性別', '電話番号', '連絡先電話番号',
-                'メール', '郵便番号', '住所', '連絡先郵便番号', '連絡先住所',
-                '作成日', '更新日', '公開トークン', '確認日時', '確認者ID',
-            ]);
-
-            foreach ($resumes as $r) {
-                $profile = $r->profile;
-
-                fputcsv($out, [
-                    $r->id,
-                    $r->name,
-                    $r->furigana ?? '',
-                    optional($r->birth_date)->format('Y-m-d') ?? '',
-                    $r->gender ?? '',
-                    $r->phone ?? '',
-                    $r->contact_phone ?? '',
-                    $r->email ?? ($r->user ? $r->user->email : ''),
-                    $r->address_postal ?? '',
-                    $r->address ?? '',
-                    $r->contact_postal ?? '',
-                    $r->contact_address ?? '',
-                    optional($r->created_at)->format('Y-m-d H:i:s') ?? '',
-                    optional($r->updated_at)->format('Y-m-d H:i:s') ?? '',
-                    $r->public_token ?? '',
-                    optional($r->reviewed_at)->format('Y-m-d H:i:s') ?? '',
-                    $r->reviewed_by ?? '',
-                ]);
-            }
-
-            fclose($out);
-        };
-
-        return response()->stream($callback, 200, $headers);
+        return CsvResponse::stream('resumes-'.date('YmdHis').'.csv', [
+            'ID', '氏名', 'フリガナ', '生年月日', '性別', '電話番号', '連絡先電話番号',
+            'メール', '郵便番号', '住所', '連絡先郵便番号', '連絡先住所',
+            '作成日', '更新日', '公開トークン', '確認日時', '確認者ID',
+        ], $rows);
     }
 
-    public function store(ResumeStoreRequest $request)
+    public function store(ResumeStoreRequest $request, ResumePhotoService $photos)
     {
         $validated = $request->validated();
 
         if ($request->hasFile('photo')) {
-            // optimize image (fit to 800x800, quality 85) and store under public disk
-            $driverClass = extension_loaded('imagick') ? \Intervention\Image\Drivers\Imagick\Driver::class : \Intervention\Image\Drivers\Gd\Driver::class;
-            Log::debug('Image driverClass (store): '.$driverClass);
-            $manager = new ImageManager($driverClass);
-            $img = $manager->read($request->file('photo')->getRealPath());
-            // Use CoverModifier to crop/resize to portrait (300x420) centered
-            $img->modify(new CoverModifier(300, 420, 'center'));
-            $filename = 'photos/'.uniqid('', true).'.jpg';
-            $full = storage_path('app/public/'.$filename);
-            $img->save($full, 85);
-            $validated['photo_path'] = $filename;
+            $validated['photo_path'] = $photos->store($request->file('photo'));
         }
 
         // Attach user_id if authenticated, otherwise generate a public token
@@ -174,7 +135,6 @@ class ResumeController extends Controller
 
     public function edit(Resume $resume)
     {
-        $user = Auth::user();
         $this->authorize('update', $resume);
 
         $resume->load(['histories', 'licenses', 'profile']);
@@ -182,27 +142,14 @@ class ResumeController extends Controller
         return view('resume.edit', compact('resume'));
     }
 
-    public function update(ResumeUpdateRequest $request, Resume $resume)
+    public function update(ResumeUpdateRequest $request, Resume $resume, ResumePhotoService $photos)
     {
         $this->authorize('update', $resume);
 
         $validated = $request->validated();
 
         if ($request->hasFile('photo')) {
-            // remove old photo if present
-            if ($resume->photo_path) {
-                Storage::disk('public')->delete($resume->photo_path);
-            }
-            $driverClass = extension_loaded('imagick') ? \Intervention\Image\Drivers\Imagick\Driver::class : \Intervention\Image\Drivers\Gd\Driver::class;
-            Log::debug('Image driverClass (update): '.$driverClass);
-            $manager = new ImageManager($driverClass);
-            $img = $manager->read($request->file('photo')->getRealPath());
-            // Use CoverModifier to crop/resize to portrait (300x420) centered
-            $img->modify(new CoverModifier(300, 420, 'center'));
-            $filename = 'photos/'.uniqid('', true).'.jpg';
-            $full = storage_path('app/public/'.$filename);
-            $img->save($full, 85);
-            $validated['photo_path'] = $filename;
+            $validated['photo_path'] = $photos->replace($request->file('photo'), $resume->photo_path);
         }
 
         $resume->update($validated);
@@ -218,21 +165,18 @@ class ResumeController extends Controller
      */
     public function revokePublic(Resume $resume)
     {
-
         $this->authorize('revokePublic', $resume);
         $resume->revokePublicToken();
 
         return redirect()->back()->with('status', '公開リンクを無効化しました');
     }
 
-    public function destroy(Resume $resume)
+    public function destroy(Resume $resume, ResumePhotoService $photos)
     {
         $this->authorize('delete', $resume);
 
         // delete related resources
-        if ($resume->photo_path) {
-            Storage::disk('public')->delete($resume->photo_path);
-        }
+        $photos->delete($resume->photo_path);
         $resume->histories()->delete();
         $resume->licenses()->delete();
         $resume->profile()->delete();
