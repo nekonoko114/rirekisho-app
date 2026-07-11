@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // 旧タイムスタンプ(081222)で cvs より先に実行され外部キー作成に失敗した
+        // 環境には、制約なしの空テーブルが残っているため作り直す
+        Schema::dropIfExists('cv_histories');
+
         Schema::create('cv_histories', function (Blueprint $table) {
             $table->id();
             $table->foreignId('cv_id')->constrained()->cascadeOnDelete();
