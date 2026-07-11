@@ -64,6 +64,58 @@
                 </div>
             </div>
 
+            <div class="row g-4 mb-4">
+                <div class="col-12 col-md-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="text-muted small">作成済みの職務経歴書</div>
+                            <div class="display-6">{{ $cvCount ?? 0 }}</div>
+                            <div class="mt-3">
+                                <a href="{{ route('cvs.create') }}" class="btn btn-teal btn-sm text-white" style="background-color: #20c997; border-color: #20c997;">新規作成</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-8">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">最近の職務経歴書</h5>
+                            @if(isset($recentCvs) && $recentCvs->count())
+                                <div class="table-responsive">
+                                    <table class="table table-sm mt-3 mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>氏名</th>
+                                                <th>作成日</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($recentCvs as $c)
+                                                <tr>
+                                                    <td>{{ $c->id }}</td>
+                                                    <td>{{ $c->name }}</td>
+                                                    <td>{{ optional($c->created_at)->format('Y-m-d') }}</td>
+                                                    <td>
+                                                        <a href="{{ route('cvs.show', $c) }}" class="btn btn-outline-secondary btn-sm me-1">表示</a>
+                                                        <a href="{{ route('cvs.edit', $c) }}" class="btn btn-outline-primary btn-sm me-1">編集</a>
+                                                        <a href="{{ route('cvs.pdf', $c) }}" target="_blank" class="btn btn-outline-dark btn-sm">PDF</a>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @else
+                                <div class="text-muted">まだ職務経歴書がありません。<a href="{{ route('cvs.create') }}">新規作成</a>してください。</div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="card mb-4">
                 <div class="card-body">
                     <h5 class="card-title">公開リンク管理</h5>
@@ -83,7 +135,7 @@
                                 <tbody>
                                     @foreach($publicResumes as $pr)
                                         <tr>
-                                            <td>{{ $pr->id }}</td>
+                                            <td>履歴書: {{ $pr->id }}</td>
                                             <td>{{ $pr->name }}</td>
                                             <td style="min-width:320px;">
                                                 @php $link = route('resumes.show', ['resume' => $pr->id, 'token' => $pr->public_token]); @endphp
@@ -100,6 +152,27 @@
                                             </td>
                                         </tr>
                                     @endforeach
+                                    @if(isset($publicCvs) && $publicCvs->count())
+                                        @foreach($publicCvs as $pc)
+                                            <tr>
+                                                <td>職務経歴書: {{ $pc->id }}</td>
+                                                <td>{{ $pc->name }}</td>
+                                                <td style="min-width:320px;">
+                                                    @php $link = route('cvs.show', ['cv' => $pc->id, 'token' => $pc->public_token]); @endphp
+                                                    <div class="input-group input-group-sm">
+                                                        <input type="text" readonly class="form-control" value="{{ $link }}">
+                                                        <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard && navigator.clipboard.writeText('{{ $link }}')">コピー</button>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <form method="POST" action="{{ route('cvs.revoke_public', $pc) }}" onsubmit="return confirm('公開リンクを無効化しますか？');">
+                                                        @csrf
+                                                        <button type="submit" class="btn btn-danger btn-sm">無効化</button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    @endif
                                 </tbody>
                             </table>
                         </div>

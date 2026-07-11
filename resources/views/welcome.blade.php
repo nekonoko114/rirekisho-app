@@ -64,6 +64,9 @@
                             <a href="{{ route('resumes.create') }}" class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3.5 text-base font-medium text-white bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 rounded-xl shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:-translate-y-0.5 transition-all duration-300">
                                 履歴書を作成
                             </a>
+                            <a href="{{ route('cvs.create') }}" class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3.5 text-base font-medium text-white bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-500 hover:to-teal-400 rounded-xl shadow-lg shadow-teal-500/30 hover:shadow-teal-500/50 hover:-translate-y-0.5 transition-all duration-300">
+                                職務経歴書を作成
+                            </a>
                             <a href="{{ route('login') }}" class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3.5 text-base font-medium text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-800/50 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 rounded-xl shadow-sm hover:-translate-y-0.5 transition-all duration-300">
                                 ログイン
                             </a>

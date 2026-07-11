@@ -25,6 +25,12 @@ Route::middleware('auth')->group(function () {
     Route::get('resumes/{resume}/edit', [ResumeController::class, 'edit'])->name('resumes.edit');
     Route::match(['put', 'patch'], 'resumes/{resume}', [ResumeController::class, 'update'])->name('resumes.update');
     Route::delete('resumes/{resume}', [ResumeController::class, 'destroy'])->name('resumes.destroy');
+
+    // Authenticated users can edit and delete their own cvs
+    Route::get('cvs/{cv}/edit', [App\Http\Controllers\CvController::class, 'edit'])->name('cvs.edit');
+    Route::match(['put', 'patch'], 'cvs/{cv}', [App\Http\Controllers\CvController::class, 'update'])->name('cvs.update');
+    Route::delete('cvs/{cv}', [App\Http\Controllers\CvController::class, 'destroy'])->name('cvs.destroy');
+    Route::post('cvs/{cv}/revoke-public', [App\Http\Controllers\CvController::class, 'revokePublic'])->name('cvs.revoke_public');
 });
 
 require __DIR__.'/auth.php';
@@ -39,6 +45,12 @@ Route::get('resumes/export', [ResumeController::class, 'export'])->name('resumes
 Route::get('resumes/{resume}', [ResumeController::class, 'show'])->name('resumes.show');
 // PDF export (uses server-side generator if installed)
 Route::get('resumes/{resume}/pdf', [ResumeController::class, 'pdf'])->name('resumes.pdf');
+
+// CV routes: guests can create/store/show
+Route::get('cvs/create', [App\Http\Controllers\CvController::class, 'create'])->name('cvs.create');
+Route::post('cvs', [App\Http\Controllers\CvController::class, 'store'])->name('cvs.store');
+Route::get('cvs/{cv}', [App\Http\Controllers\CvController::class, 'show'])->name('cvs.show');
+Route::get('cvs/{cv}/pdf', [App\Http\Controllers\CvController::class, 'pdf'])->name('cvs.pdf');
 
 // Debug routes removed. Use authenticated admin flows for testing instead.
 

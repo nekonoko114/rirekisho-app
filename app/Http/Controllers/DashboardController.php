@@ -19,6 +19,10 @@ class DashboardController extends Controller
         $recentResumes = Resume::where('user_id', $user->id)->orderBy('created_at', 'desc')->take(5)->get();
         $publicResumes = Resume::where('user_id', $user->id)->whereNotNull('public_token')->orderBy('created_at', 'desc')->get();
 
+        $cvCount = \App\Models\Cv::where('user_id', $user->id)->count();
+        $recentCvs = \App\Models\Cv::where('user_id', $user->id)->orderBy('created_at', 'desc')->take(5)->get();
+        $publicCvs = \App\Models\Cv::where('user_id', $user->id)->whereNotNull('public_token')->orderBy('created_at', 'desc')->get();
+
         // Admin widgets
         $adminTotals = null;
         if (method_exists($user, 'isAdmin') && $user->isAdmin()) {
@@ -94,6 +98,6 @@ class DashboardController extends Controller
             ];
         }
 
-        return view('dashboard', compact('resumeCount', 'recentResumes', 'publicResumes', 'adminTotals'));
+        return view('dashboard', compact('resumeCount', 'recentResumes', 'publicResumes', 'cvCount', 'recentCvs', 'publicCvs', 'adminTotals'));
     }
 }
