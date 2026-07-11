@@ -61,6 +61,35 @@ jobs:
             --exclude '.env' \
             ./ ${{ secrets.XSERVER_USER }}@${{ secrets.XSERVER_HOST }}:~/resume-app/
 
+      - name: Backup database before migration
+        run: |
+          ssh -p ${{ secrets.XSERVER_PORT }} -o StrictHostKeyChecking=no -o PubkeyAcceptedAlgorithms=+ssh-rsa -o HostKeyAlgorithms=+ssh-rsa ${{ secrets.XSERVER_USER }}@${{ secrets.XSERVER_HOST }} << 'EOF'
+            set -e
+            set -o pipefail 2>/dev/null || true
+            cd ~/resume-app
+
+            # .env からDB接続情報を読み取る（値の引用符とCRを除去）
+            get_env() { grep "^$1=" .env | head -1 | cut -d= -f2- | tr -d '"' | tr -d "\r"; }
+            DB_HOST=$(get_env DB_HOST)
+            DB_NAME=$(get_env DB_DATABASE)
+            DB_USER=$(get_env DB_USERNAME)
+            DB_PASS=$(get_env DB_PASSWORD)
+
+            mkdir -p ~/db_backups
+            BACKUP_FILE=~/db_backups/backup_$(date +%Y%m%d_%H%M%S).sql.gz
+            mysqldump --single-transaction -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" | gzip > "$BACKUP_FILE"
+
+            # 空バックアップならデプロイを中断
+            if [ ! -s "$BACKUP_FILE" ]; then
+              echo "バックアップが空です。デプロイを中断します。"
+              exit 1
+            fi
+            echo "バックアップ作成: $BACKUP_FILE ($(du -h "$BACKUP_FILE" | cut -f1))"
+
+            # 直近14世代のみ保持
+            ls -t ~/db_backups/backup_*.sql.gz | tail -n +15 | xargs rm -f 2>/dev/null || true
+          EOF
+
       - name: Run post-deployment artisan commands
         run: |
           ssh -p ${{ secrets.XSERVER_PORT }} -o StrictHostKeyChecking=no -o PubkeyAcceptedAlgorithms=+ssh-rsa -o HostKeyAlgorithms=+ssh-rsa ${{ secrets.XSERVER_USER }}@${{ secrets.XSERVER_HOST }} << 'EOF'
