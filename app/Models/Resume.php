@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasPublicToken;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Resume extends Model
 {
-    use HasFactory;
+    use HasFactory, HasPublicToken;
 
     protected $fillable = [
         'user_id',

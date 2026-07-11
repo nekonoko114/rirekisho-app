@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\AuthorizesPublicDocuments;
 use App\Http\Requests\ResumeStoreRequest;
 use App\Http\Requests\ResumeUpdateRequest;
 use App\Models\Resume;
@@ -15,6 +16,8 @@ use Intervention\Image\Modifiers\CoverModifier;
 
 class ResumeController extends Controller
 {
+    use AuthorizesPublicDocuments;
+
     public function create()
     {
         return view('resume.create');
@@ -127,11 +130,7 @@ class ResumeController extends Controller
         if ($request->user()) {
             $validated['user_id'] = $request->user()->id;
         } else {
-            // generate unique public token with collision avoidance
-            do {
-                $token = bin2hex(random_bytes(16));
-            } while (Resume::where('public_token', $token)->exists());
-            $validated['public_token'] = $token;
+            $validated['public_token'] = Resume::generateUniquePublicToken();
         }
 
         $resume = Resume::create($validated);
@@ -150,26 +149,11 @@ class ResumeController extends Controller
     {
         $resume->load(['histories', 'licenses', 'profile']);
 
-        $user = Auth::user();
-        $token = request()->query('token');
-
-        // Allow if:
-        // - logged-in owner
-        // - logged-in admin
-        // - or public token matches for guest-created resumes
-        if ($user) {
-            $this->authorize('view', $resume);
-
-            return view('resume.show', compact('resume'));
+        if ($redirect = $this->authorizePublicView($resume)) {
+            return $redirect;
         }
 
-        // If resume has public_token and token matches, allow (guest access)
-        if ($resume->public_token && $token && \hash_equals($resume->public_token, $token)) {
-            return view('resume.show', compact('resume'));
-        }
-
-        // Not authorized: redirect guests to login
-        return redirect()->route('login');
+        return view('resume.show', compact('resume'));
     }
 
     /**
@@ -178,15 +162,8 @@ class ResumeController extends Controller
     public function pdf(Resume $resume)
     {
         // Reuse the same authorization logic as show
-        $user = Auth::user();
-        $token = request()->query('token');
-
-        if ($user) {
-            $this->authorize('view', $resume);
-        } else {
-            if (! ($resume->public_token && $token && \hash_equals($resume->public_token, $token))) {
-                return redirect()->route('login');
-            }
+        if ($redirect = $this->authorizePublicView($resume)) {
+            return $redirect;
         }
 
         // Render the same view but instruct it we're rendering for PDF (disable print button)
@@ -243,8 +220,7 @@ class ResumeController extends Controller
     {
 
         $this->authorize('revokePublic', $resume);
-        $resume->public_token = null;
-        $resume->save();
+        $resume->revokePublicToken();
 
         return redirect()->back()->with('status', '公開リンクを無効化しました');
     }

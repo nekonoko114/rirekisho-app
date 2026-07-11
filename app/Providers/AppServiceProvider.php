@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\Cv;
 use App\Models\Resume;
+use App\Policies\CvPolicy;
 use App\Policies\ResumePolicy;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Routing\Router;
@@ -29,8 +31,9 @@ class AppServiceProvider extends ServiceProvider
 
         Paginator::useBootstrapFive();
 
-        // Register Resume policy so controllers can use $this->authorize()
+        // Register policies so controllers can use $this->authorize()
         Gate::policy(Resume::class, ResumePolicy::class);
+        Gate::policy(Cv::class, CvPolicy::class);
 
         if ($this->app->environment('production')) {
             \Illuminate\Support\Facades\URL::forceScheme('https');

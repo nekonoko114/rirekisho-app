@@ -2,15 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\AuthorizesPublicDocuments;
 use App\Http\Requests\CvStoreRequest;
 use App\Http\Requests\CvUpdateRequest;
 use App\Models\Cv;
 use App\Services\CvService;
 use App\Services\PdfExportService;
-use Illuminate\Support\Facades\Auth;
 
 class CvController extends Controller
 {
+    use AuthorizesPublicDocuments;
+
     public function create()
     {
         return view('cv.create');
@@ -23,10 +25,7 @@ class CvController extends Controller
         if ($request->user()) {
             $validated['user_id'] = $request->user()->id;
         } else {
-            do {
-                $token = bin2hex(random_bytes(16));
-            } while (Cv::where('public_token', $token)->exists());
-            $validated['public_token'] = $token;
+            $validated['public_token'] = Cv::generateUniquePublicToken();
         }
 
         $cv = Cv::create($validated);
@@ -44,37 +43,18 @@ class CvController extends Controller
     {
         $cv->load(['histories', 'licenses']);
 
-        $user = Auth::user();
-        $token = request()->query('token');
-
-        if ($user) {
-            if ($cv->user_id !== $user->id && ! ($user && method_exists($user, 'isAdmin') && $user->isAdmin())) {
-                abort(403);
-            }
-
-            return view('cv.show', compact('cv'));
+        if ($redirect = $this->authorizePublicView($cv)) {
+            return $redirect;
         }
 
-        if ($cv->public_token && $token && \hash_equals($cv->public_token, $token)) {
-            return view('cv.show', compact('cv'));
-        }
-
-        return redirect()->route('login');
+        return view('cv.show', compact('cv'));
     }
 
     public function pdf(Cv $cv)
     {
-        $user = Auth::user();
-        $token = request()->query('token');
-
-        if ($user) {
-            if ($cv->user_id !== $user->id && ! ($user && method_exists($user, 'isAdmin') && $user->isAdmin())) {
-                abort(403);
-            }
-        } else {
-            if (! ($cv->public_token && $token && \hash_equals($cv->public_token, $token))) {
-                return redirect()->route('login');
-            }
+        // Reuse the same authorization logic as show
+        if ($redirect = $this->authorizePublicView($cv)) {
+            return $redirect;
         }
 
         $html = view('cv.show', ['cv' => $cv, 'forPdf' => true])->render();
@@ -84,10 +64,7 @@ class CvController extends Controller
 
     public function edit(Cv $cv)
     {
-        $user = Auth::user();
-        if ($cv->user_id !== $user->id) {
-            abort(403);
-        }
+        $this->authorize('update', $cv);
 
         $cv->load(['histories', 'licenses']);
 
@@ -96,10 +73,7 @@ class CvController extends Controller
 
     public function update(CvUpdateRequest $request, Cv $cv)
     {
-        $user = Auth::user();
-        if ($cv->user_id !== $user->id) {
-            abort(403);
-        }
+        $this->authorize('update', $cv);
 
         $validated = $request->validated();
         $cv->update($validated);
@@ -111,23 +85,15 @@ class CvController extends Controller
 
     public function revokePublic(Cv $cv)
     {
-        $user = Auth::user();
-        if ($cv->user_id !== $user->id && ! ($user && method_exists($user, 'isAdmin') && $user->isAdmin())) {
-            abort(403);
-        }
-
-        $cv->public_token = null;
-        $cv->save();
+        $this->authorize('revokePublic', $cv);
+        $cv->revokePublicToken();
 
         return redirect()->back()->with('status', '公開リンクを無効化しました');
     }
 
     public function destroy(Cv $cv)
     {
-        $user = Auth::user();
-        if ($cv->user_id !== $user->id) {
-            abort(403);
-        }
+        $this->authorize('delete', $cv);
 
         $cv->histories()->delete();
         $cv->licenses()->delete();

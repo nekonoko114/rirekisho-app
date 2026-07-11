@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasPublicToken;
 use Illuminate\Database\Eloquent\Model;
 
 class Cv extends Model
 {
+    use HasPublicToken;
+
     protected $fillable = [
         'user_id',
         'name',
@@ -33,9 +36,10 @@ class Cv extends Model
     {
         parent::boot();
 
+        // Unlike Resume, every CV gets a public token on creation
         static::creating(function ($cv) {
             if (empty($cv->public_token)) {
-                $cv->public_token = \Illuminate\Support\Str::random(32);
+                $cv->public_token = static::generateUniquePublicToken();
             }
         });
     }
