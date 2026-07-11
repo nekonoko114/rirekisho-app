@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ResumeStoreRequest;
 use App\Http\Requests\ResumeUpdateRequest;
 use App\Models\Resume;
+use App\Services\PdfExportService;
 use App\Services\ResumeService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -191,91 +192,7 @@ class ResumeController extends Controller
         // Render the same view but instruct it we're rendering for PDF (disable print button)
         $html = view('resume.show', ['resume' => $resume, 'forPdf' => true])->render();
 
-        $filename = 'resume-'.$resume->id.'.pdf';
-        $pdfZoom = 0.75;
-
-        // Priority 1: External PDF service (works on shared hosting without wkhtmltopdf)
-        $pdfServiceEnabled = config('services.pdf.enabled', false);
-        Log::info('PDF service enabled: '.($pdfServiceEnabled ? 'true' : 'false'));
-
-        if ($pdfServiceEnabled) {
-            try {
-                Log::info('Attempting external PDF generation for resume '.$resume->id);
-                $externalPdf = app(\App\Services\ExternalPdfService::class);
-                $pdfContent = $externalPdf->generateFromHtml($html, [
-                    'filename' => $filename,
-                    'zoom' => $pdfZoom,
-                ]);
-
-                if ($pdfContent) {
-                    Log::info('External PDF generation successful for resume '.$resume->id);
-                    Log::info('PDF filename: '.$filename);
-                    Log::info('PDF size: '.strlen($pdfContent).' bytes');
-                    Log::info('Content-Disposition header: attachment; filename="'.$filename.'"');
-
-                    $response = response($pdfContent, 200, [
-                        'Content-Type' => 'application/pdf',
-                        'Content-Disposition' => 'attachment; filename="'.$filename.'"',
-                    ]);
-
-                    Log::info('Response headers: '.json_encode($response->headers->all()));
-
-                    return $response;
-                }
-            } catch (\Throwable $e) {
-                Log::error('External PDF generation failed for resume '.$resume->id.': '.$e->getMessage());
-                // fall through to next option
-            }
-        }
-
-        // Priority 2: Snappy (if wkhtmltopdf is available locally)
-        try {
-            $useSnappy = app()->bound('snappy.pdf') && class_exists('\Knp\\Snappy\\Pdf');
-        } catch (\Throwable $e) {
-            $useSnappy = false;
-        }
-
-        if ($useSnappy) {
-            try {
-                $pdf = app('snappy.pdf.wrapper')->loadHTML($html);
-                try {
-                    $pdf->setOption('zoom', $pdfZoom);
-                } catch (\Throwable $e) {
-                    Log::warning('Unable to set snappy zoom option: '.$e->getMessage());
-                }
-
-                return response($pdf->output(), 200, [
-                    'Content-Type' => 'application/pdf',
-                    'Content-Disposition' => 'inline; filename="'.$filename.'"',
-                ]);
-            } catch (\Throwable $e) {
-                Log::error('PDF generation (snappy) failed for resume '.$resume->id.': '.$e->getMessage());
-                // fall through to next option
-            }
-        }
-
-        // Priority 3: Local wkhtmltopdf via PdfGenerator
-        try {
-            $cfg = config('snappy.pdf.options', []);
-            $cfg['zoom'] = $pdfZoom;
-            config(['snappy.pdf.options' => $cfg]);
-
-            $generator = new \App\Services\PdfGenerator;
-            $pdfContent = $generator->outputFromHtml($html);
-
-            return response($pdfContent, 200, [
-                'Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'inline; filename="'.$filename.'"',
-            ]);
-        } catch (\Throwable $e) {
-            Log::error('PDF generation fallback failed for resume '.$resume->id.': '.$e->getMessage());
-
-            // Final fallback: return HTML with print-friendly CSS
-            return response($html, 200, [
-                'Content-Type' => 'text/html; charset=UTF-8',
-                'X-PDF-Error' => 'true',
-            ]);
-        }
+        return app(PdfExportService::class)->respond($html, 'resume-'.$resume->id.'.pdf');
     }
 
     public function edit(Resume $resume)

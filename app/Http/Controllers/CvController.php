@@ -6,8 +6,8 @@ use App\Http\Requests\CvStoreRequest;
 use App\Http\Requests\CvUpdateRequest;
 use App\Models\Cv;
 use App\Services\CvService;
+use App\Services\PdfExportService;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 
 class CvController extends Controller
 {
@@ -48,9 +48,10 @@ class CvController extends Controller
         $token = request()->query('token');
 
         if ($user) {
-            if ($cv->user_id !== $user->id && !($user && method_exists($user, 'isAdmin') && $user->isAdmin())) {
+            if ($cv->user_id !== $user->id && ! ($user && method_exists($user, 'isAdmin') && $user->isAdmin())) {
                 abort(403);
             }
+
             return view('cv.show', compact('cv'));
         }
 
@@ -67,7 +68,7 @@ class CvController extends Controller
         $token = request()->query('token');
 
         if ($user) {
-            if ($cv->user_id !== $user->id && !($user && method_exists($user, 'isAdmin') && $user->isAdmin())) {
+            if ($cv->user_id !== $user->id && ! ($user && method_exists($user, 'isAdmin') && $user->isAdmin())) {
                 abort(403);
             }
         } else {
@@ -78,74 +79,7 @@ class CvController extends Controller
 
         $html = view('cv.show', ['cv' => $cv, 'forPdf' => true])->render();
 
-        $filename = 'cv-'.$cv->id.'.pdf';
-        $pdfZoom = 0.75;
-
-        $pdfServiceEnabled = config('services.pdf.enabled', false);
-
-        if ($pdfServiceEnabled) {
-            try {
-                $externalPdf = app(\App\Services\ExternalPdfService::class);
-                $pdfContent = $externalPdf->generateFromHtml($html, [
-                    'filename' => $filename,
-                    'zoom' => $pdfZoom,
-                ]);
-
-                if ($pdfContent) {
-                    return response($pdfContent, 200, [
-                        'Content-Type' => 'application/pdf',
-                        'Content-Disposition' => 'attachment; filename="'.$filename.'"',
-                    ]);
-                }
-            } catch (\Throwable $e) {
-                Log::error('External PDF generation failed for cv '.$cv->id.': '.$e->getMessage());
-            }
-        }
-
-        try {
-            $useSnappy = app()->bound('snappy.pdf') && class_exists('\Knp\\Snappy\\Pdf');
-        } catch (\Throwable $e) {
-            $useSnappy = false;
-        }
-
-        if ($useSnappy) {
-            try {
-                $pdf = app('snappy.pdf.wrapper')->loadHTML($html);
-                try {
-                    $pdf->setOption('zoom', $pdfZoom);
-                } catch (\Throwable $e) {
-                    Log::warning('Unable to set snappy zoom option: '.$e->getMessage());
-                }
-
-                return response($pdf->output(), 200, [
-                    'Content-Type' => 'application/pdf',
-                    'Content-Disposition' => 'inline; filename="'.$filename.'"',
-                ]);
-            } catch (\Throwable $e) {
-                Log::error('PDF generation (snappy) failed for cv '.$cv->id.': '.$e->getMessage());
-            }
-        }
-
-        try {
-            $cfg = config('snappy.pdf.options', []);
-            $cfg['zoom'] = $pdfZoom;
-            config(['snappy.pdf.options' => $cfg]);
-
-            $generator = new \App\Services\PdfGenerator;
-            $pdfContent = $generator->outputFromHtml($html);
-
-            return response($pdfContent, 200, [
-                'Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'inline; filename="'.$filename.'"',
-            ]);
-        } catch (\Throwable $e) {
-            Log::error('PDF generation fallback failed for cv '.$cv->id.': '.$e->getMessage());
-
-            return response($html, 200, [
-                'Content-Type' => 'text/html; charset=UTF-8',
-                'X-PDF-Error' => 'true',
-            ]);
-        }
+        return app(PdfExportService::class)->respond($html, 'cv-'.$cv->id.'.pdf');
     }
 
     public function edit(Cv $cv)
@@ -178,7 +112,7 @@ class CvController extends Controller
     public function revokePublic(Cv $cv)
     {
         $user = Auth::user();
-        if ($cv->user_id !== $user->id && !($user && method_exists($user, 'isAdmin') && $user->isAdmin())) {
+        if ($cv->user_id !== $user->id && ! ($user && method_exists($user, 'isAdmin') && $user->isAdmin())) {
             abort(403);
         }
 
