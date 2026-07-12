@@ -80,6 +80,10 @@ class CvController extends Controller
 
         app(CvService::class)->updateFromRequest($cv, $request);
 
+        if (auth()->user() && auth()->user()->isAdmin()) {
+            return redirect()->route('admin.cvs.show', $cv)->with('status', '職務経歴書を更新しました');
+        }
+
         return redirect()->route('cvs.show', $cv)->with('status', '職務経歴書を更新しました');
     }
 

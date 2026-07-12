@@ -67,6 +67,11 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::post('admin/resumes/{resume}/reject', [\App\Http\Controllers\Admin\ResumeModerationController::class, 'reject'])->name('admin.resumes.reject');
     Route::post('admin/resumes/{resume}/review', [\App\Http\Controllers\Admin\ResumeModerationController::class, 'markReviewed'])->name('admin.resumes.mark_reviewed');
 
+    // Admin: CV management
+    Route::get('admin/cvs', [\App\Http\Controllers\Admin\CvModerationController::class, 'index'])->name('admin.cvs.index');
+    Route::get('admin/cvs/{cv}', [\App\Http\Controllers\Admin\CvModerationController::class, 'show'])->name('admin.cvs.show');
+    Route::delete('admin/cvs/{cv}', [\App\Http\Controllers\Admin\CvModerationController::class, 'destroy'])->name('admin.cvs.destroy');
+
     // Admin user management: show only index and show (read-only listing)
     // Admin user management: full resource (index, create, store, show, edit, update, destroy)
     Route::resource('admin/users', \App\Http\Controllers\Admin\UserController::class)->names([

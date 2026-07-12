@@ -123,7 +123,11 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
           <div>
             @if(Auth::check())
-              <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary">ダッシュボードへ戻る</a>
+              @if(Auth::user()->isAdmin())
+                <a href="{{ route('admin.cvs.index') }}" class="btn btn-outline-secondary">職務経歴書一覧へ戻る</a>
+              @else
+                <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary">ダッシュボードへ戻る</a>
+              @endif
               <a href="{{ route('cvs.edit', $cv) }}" class="btn btn-outline-primary ms-2">編集</a>
             @endif
           </div>

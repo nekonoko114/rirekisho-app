@@ -17,14 +17,19 @@
                     </x-nav-link>
                     @auth
                         @php $user = Auth::user(); @endphp
-                        @if($user && method_exists($user, 'isAdmin') && $user->isAdmin() && Route::has('admin.users.index'))
-                            <x-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
-                                {{ __('ユーザー一覧') }}
+                        @if($user && method_exists($user, 'isAdmin') && $user->isAdmin())
+                            @if(Route::has('admin.users.index'))
+                                <x-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
+                                    {{ __('ユーザー一覧') }}
+                                </x-nav-link>
+                            @endif
+                            <x-nav-link :href="route('admin.cvs.index')" :active="request()->routeIs('admin.cvs.*')">
+                                {{ __('職務経歴書一覧') }}
                             </x-nav-link>
                         @endif
 
                         <x-nav-link :href="route('resumes.index')" :active="request()->routeIs('resumes.*')">
-                            {{ __('投稿一覧') }}
+                            {{ __('履歴書一覧') }}
                         </x-nav-link>
                     @endauth
                 </div>
@@ -96,14 +101,19 @@
 
             @auth
                 @php $user = Auth::user(); @endphp
-                @if($user && method_exists($user, 'isAdmin') && $user->isAdmin() && Route::has('admin.users.index'))
-                    <x-responsive-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
-                        {{ __('ユーザー一覧') }}
+                @if($user && method_exists($user, 'isAdmin') && $user->isAdmin())
+                    @if(Route::has('admin.users.index'))
+                        <x-responsive-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
+                            {{ __('ユーザー一覧') }}
+                        </x-responsive-nav-link>
+                    @endif
+                    <x-responsive-nav-link :href="route('admin.cvs.index')" :active="request()->routeIs('admin.cvs.*')">
+                        {{ __('職務経歴書一覧') }}
                     </x-responsive-nav-link>
                 @endif
 
                 <x-responsive-nav-link :href="route('resumes.index')" :active="request()->routeIs('resumes.*')">
-                    {{ __('投稿一覧') }}
+                    {{ __('履歴書一覧') }}
                 </x-responsive-nav-link>
             @endauth
         </div>
