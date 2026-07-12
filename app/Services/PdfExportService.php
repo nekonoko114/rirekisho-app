@@ -27,7 +27,7 @@ class PdfExportService
                 ]);
 
                 if ($pdfContent) {
-                    return $this->pdfResponse($pdfContent, $filename, 'attachment');
+                    return $this->pdfResponse($pdfContent, $filename, 'inline');
                 }
             } catch (\Throwable $e) {
                 Log::error("External PDF generation failed for {$filename}: ".$e->getMessage());
