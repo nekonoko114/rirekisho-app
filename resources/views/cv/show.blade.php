@@ -89,6 +89,10 @@
         width: 20%;
         text-align: center;
       }
+      @page {
+        size: A4 portrait;
+        margin: 15mm 20mm;
+      }
       @media print {
         body { background: #fff; }
         .cv-container { box-shadow: none; margin: 0; padding: 0; max-width: 100%; }

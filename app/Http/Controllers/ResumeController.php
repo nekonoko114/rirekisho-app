@@ -130,7 +130,7 @@ class ResumeController extends Controller
         // Render the same view but instruct it we're rendering for PDF (disable print button)
         $html = view('resume.show', ['resume' => $resume, 'forPdf' => true])->render();
 
-        return app(PdfExportService::class)->respond($html, 'resume-'.$resume->id.'.pdf');
+        return app(PdfExportService::class)->respond($html, 'resume-'.$resume->id.'.pdf', 0.75, 'Landscape');
     }
 
     public function edit(Resume $resume)

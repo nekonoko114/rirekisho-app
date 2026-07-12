@@ -59,7 +59,7 @@ class CvController extends Controller
 
         $html = view('cv.show', ['cv' => $cv, 'forPdf' => true])->render();
 
-        return app(PdfExportService::class)->respond($html, 'cv-'.$cv->id.'.pdf');
+        return app(PdfExportService::class)->respond($html, 'cv-'.$cv->id.'.pdf', 0.75, 'Portrait');
     }
 
     public function edit(Cv $cv)

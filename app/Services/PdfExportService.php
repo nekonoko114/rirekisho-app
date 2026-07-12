@@ -17,13 +17,16 @@ use Illuminate\Support\Facades\Log;
  */
 class PdfExportService
 {
-    public function respond(string $html, string $filename, float $zoom = 0.75): Response
+    public function respond(string $html, string $filename, float $zoom = 0.75, string $orientation = 'Landscape'): Response
     {
+        $lowerOrientation = strtolower($orientation);
+
         if (config('services.pdf.enabled', false)) {
             try {
                 $pdfContent = app(ExternalPdfService::class)->generateFromHtml($html, [
                     'filename' => $filename,
                     'zoom' => $zoom,
+                    'orientation' => $lowerOrientation,
                 ]);
 
                 if ($pdfContent) {
@@ -39,8 +42,9 @@ class PdfExportService
                 $pdf = app('snappy.pdf.wrapper')->loadHTML($html);
                 try {
                     $pdf->setOption('zoom', $zoom);
+                    $pdf->setOption('orientation', $orientation);
                 } catch (\Throwable $e) {
-                    Log::warning('Unable to set snappy zoom option: '.$e->getMessage());
+                    Log::warning('Unable to set snappy zoom/orientation option: '.$e->getMessage());
                 }
 
                 return $this->pdfResponse($pdf->output(), $filename, 'inline');
@@ -52,6 +56,7 @@ class PdfExportService
         try {
             $cfg = config('snappy.pdf.options', []);
             $cfg['zoom'] = $zoom;
+            $cfg['orientation'] = $orientation;
             config(['snappy.pdf.options' => $cfg]);
 
             $pdfContent = (new PdfGenerator)->outputFromHtml($html);
