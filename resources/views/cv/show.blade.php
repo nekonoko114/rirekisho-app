@@ -91,11 +91,17 @@
       }
       @page {
         size: A4 portrait;
-        margin: 15mm 20mm;
+        margin: 0;
       }
       @media print {
         body { background: #fff; }
-        .cv-container { box-shadow: none; margin: 0; padding: 0; max-width: 100%; }
+        .cv-container {
+          box-shadow: none;
+          margin: 0 !important;
+          padding: 20mm 15mm !important;
+          max-width: 100% !important;
+          width: 100% !important;
+        }
         .no-print { display: none !important; }
       }
       /* ダークモード等のテーマ設定による文字色反転を防ぎ、印刷用紙イメージに合わせて常に黒系統のテキストを表示します */
