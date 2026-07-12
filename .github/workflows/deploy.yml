@@ -101,6 +101,7 @@ jobs:
             php8.2 artisan view:cache
             
             # Create storage symlink
+            
             php8.2 artisan storage:link || true
             
             # Safely run migrations

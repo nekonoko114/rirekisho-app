@@ -22,6 +22,11 @@
         .form-control::placeholder { color: rgba(255, 255, 255, 0.4) !important; }
         .btn-outline-secondary { color: rgba(255, 255, 255, 0.8); border-color: rgba(255, 255, 255, 0.3); }
         .btn-outline-secondary:hover { background-color: rgba(255, 255, 255, 0.1); color: white; }
+        .input-group-text {
+          background-color: rgba(30, 41, 59, 0.8) !important;
+          color: rgba(255, 255, 255, 0.9) !important;
+          border-color: rgba(71, 85, 105, 0.5) !important;
+        }
         hr { border-color: rgba(255, 255, 255, 0.2) !important; }
       }
     </style>
@@ -34,11 +39,11 @@
     <div class="fixed top-0 left-1/4 w-96 h-96 bg-teal-500/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob dark:mix-blend-screen -z-10 pointer-events-none"></div>
     <div class="fixed top-0 right-1/4 w-96 h-96 bg-blue-500/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000 dark:mix-blend-screen -z-10 pointer-events-none"></div>
 
-    <div class="container py-4 relative z-10">
+    <div class="container px-2 px-sm-3 py-4 relative z-10">
       <form method="post" class="resume-form" action="{{ route('cvs.store') }}">
         @csrf
         <div class="card shadow-2xl border border-white/50 dark:border-slate-700/50 bg-white/40 dark:bg-slate-800/40 backdrop-blur-xl sm:rounded-2xl" style="background-color: transparent !important;">
-          <div class="card-body p-4 sm:p-6">
+          <div class="card-body p-2 p-sm-4 sm:p-6">
             <div class="d-flex justify-content-between align-items-start mb-3">
               <div>
                 <h3 class="card-title mb-0">職務経歴書作成</h3>
@@ -75,29 +80,33 @@
                       <div class="card mb-3 history-row" style="background-color: rgba(255,255,255,0.3); border: 1px solid rgba(0,0,0,0.1);">
                         <div class="card-body p-3">
                           <div class="row g-2 mb-2">
-                            <div class="col-md-6 d-flex align-items-center gap-2">
-                              <span>入社:</span>
-                              <input type="number" class="form-control form-control-sm" name="histories[{{$i}}][start_year]" placeholder="年(西暦)" value="{{ $h['start_year'] ?? '' }}" style="width: 80px;">
-                              <span>年</span>
-                              <select class="form-select form-select-sm" name="histories[{{$i}}][start_month]" style="width: 70px;">
-                                <option value="">月</option>
-                                @for($m=1; $m<=12; $m++)
-                                  <option value="{{$m}}" @if(($h['start_month'] ?? '') == $m) selected @endif>{{$m}}</option>
-                                @endfor
-                              </select>
-                              <span>月</span>
+                            <div class="col-md-6 d-flex flex-column flex-sm-row align-items-start align-items-sm-center gap-2">
+                              <span style="min-width: 45px;">入社:</span>
+                              <div class="d-flex align-items-center gap-1">
+                                <input type="number" class="form-control form-control-sm" name="histories[{{$i}}][start_year]" placeholder="年(西暦)" value="{{ $h['start_year'] ?? '' }}" style="width: 110px;">
+                                <span class="me-2">年</span>
+                                <select class="form-select form-select-sm" name="histories[{{$i}}][start_month]" style="width: 80px;">
+                                  <option value="">月</option>
+                                  @for($m=1; $m<=12; $m++)
+                                    <option value="{{$m}}" @if(($h['start_month'] ?? '') == $m) selected @endif>{{$m}}</option>
+                                  @endfor
+                                </select>
+                                <span>月</span>
+                              </div>
                             </div>
-                            <div class="col-md-6 d-flex align-items-center gap-2">
-                              <span>退社:</span>
-                              <input type="number" class="form-control form-control-sm" name="histories[{{$i}}][end_year]" placeholder="年(西暦)" value="{{ $h['end_year'] ?? '' }}" style="width: 80px;">
-                              <span>年</span>
-                              <select class="form-select form-select-sm" name="histories[{{$i}}][end_month]" style="width: 70px;">
-                                <option value="">月</option>
-                                @for($m=1; $m<=12; $m++)
-                                  <option value="{{$m}}" @if(($h['end_month'] ?? '') == $m) selected @endif>{{$m}}</option>
-                                @endfor
-                              </select>
-                              <span>月</span>
+                            <div class="col-md-6 d-flex flex-column flex-sm-row align-items-start align-items-sm-center gap-2">
+                              <span style="min-width: 45px;">退社:</span>
+                              <div class="d-flex align-items-center gap-1">
+                                <input type="number" class="form-control form-control-sm" name="histories[{{$i}}][end_year]" placeholder="年(西暦)" value="{{ $h['end_year'] ?? '' }}" style="width: 110px;">
+                                <span class="me-2">年</span>
+                                <select class="form-select form-select-sm" name="histories[{{$i}}][end_month]" style="width: 80px;">
+                                  <option value="">月</option>
+                                  @for($m=1; $m<=12; $m++)
+                                    <option value="{{$m}}" @if(($h['end_month'] ?? '') == $m) selected @endif>{{$m}}</option>
+                                  @endfor
+                                </select>
+                                <span>月</span>
+                              </div>
                             </div>
                           </div>
                           <div class="mb-2">
@@ -126,18 +135,22 @@
                   <div id="licenseRows">
                     @for ($i = 0; $i < $licCount; $i++)
                       @php $l = $oldLicenses[$i] ?? ['year'=>'','month'=>'','name'=>'']; @endphp
-                      <div class="input-group mb-2 license-row">
-                        <input type="number" class="form-control" name="licenses[{{$i}}][year]" placeholder="年(西暦)" value="{{ $l['year'] ?? '' }}" style="max-width: 100px;">
-                        <span class="input-group-text">年</span>
-                        <select class="form-select" name="licenses[{{$i}}][month]" style="max-width: 80px;">
-                          <option value="">月</option>
-                          @for($m = 1; $m <= 12; $m++)
-                            <option value="{{ $m }}" @if(($l['month'] ?? '') == $m) selected @endif>{{ $m }}</option>
-                          @endfor
-                        </select>
-                        <span class="input-group-text">月</span>
-                        <input type="text" class="form-control" name="licenses[{{$i}}][name]" placeholder="資格名" value="{{ $l['name'] ?? '' }}">
-                        <button type="button" class="btn btn-outline-secondary btn-remove-license">−</button>
+                      <div class="row g-2 mb-2 license-row">
+                        <div class="col-sm-auto d-flex align-items-center gap-1">
+                          <input type="number" class="form-control" name="licenses[{{$i}}][year]" placeholder="年(西暦)" value="{{ $l['year'] ?? '' }}" style="width: 110px;">
+                          <span class="me-2">年</span>
+                          <select class="form-select" name="licenses[{{$i}}][month]" style="width: 80px;">
+                            <option value="">月</option>
+                            @for($m = 1; $m <= 12; $m++)
+                              <option value="{{ $m }}" @if(($l['month'] ?? '') == $m) selected @endif>{{ $m }}</option>
+                            @endfor
+                          </select>
+                          <span class="me-2">月</span>
+                        </div>
+                        <div class="col-sm d-flex gap-2">
+                          <input type="text" class="form-control" name="licenses[{{$i}}][name]" placeholder="資格名" value="{{ $l['name'] ?? '' }}">
+                          <button type="button" class="btn btn-outline-secondary btn-remove-license">−</button>
+                        </div>
                       </div>
                     @endfor
                   </div>
@@ -178,23 +191,27 @@
         newRow.innerHTML = `
           <div class="card-body p-3">
             <div class="row g-2 mb-2">
-              <div class="col-md-6 d-flex align-items-center gap-2">
-                <span>入社:</span>
-                <input type="number" class="form-control form-control-sm" name="histories[${idx}][start_year]" placeholder="年(西暦)" style="width: 80px;">
-                <span>年</span>
-                <select class="form-select form-select-sm" name="histories[${idx}][start_month]" style="width: 70px;">
-                  ${monthOptions}
-                </select>
-                <span>月</span>
+              <div class="col-md-6 d-flex flex-column flex-sm-row align-items-start align-items-sm-center gap-2">
+                <span style="min-width: 45px;">入社:</span>
+                <div class="d-flex align-items-center gap-1">
+                  <input type="number" class="form-control form-control-sm" name="histories[${idx}][start_year]" placeholder="年(西暦)" style="width: 110px;">
+                  <span class="me-2">年</span>
+                  <select class="form-select form-select-sm" name="histories[${idx}][start_month]" style="width: 80px;">
+                    ${monthOptions}
+                  </select>
+                  <span>月</span>
+                </div>
               </div>
-              <div class="col-md-6 d-flex align-items-center gap-2">
-                <span>退社:</span>
-                <input type="number" class="form-control form-control-sm" name="histories[${idx}][end_year]" placeholder="年(西暦)" style="width: 80px;">
-                <span>年</span>
-                <select class="form-select form-select-sm" name="histories[${idx}][end_month]" style="width: 70px;">
-                  ${monthOptions}
-                </select>
-                <span>月</span>
+              <div class="col-md-6 d-flex flex-column flex-sm-row align-items-start align-items-sm-center gap-2">
+                <span style="min-width: 45px;">退社:</span>
+                <div class="d-flex align-items-center gap-1">
+                  <input type="number" class="form-control form-control-sm" name="histories[${idx}][end_year]" placeholder="年(西暦)" style="width: 110px;">
+                  <span class="me-2">年</span>
+                  <select class="form-select form-select-sm" name="histories[${idx}][end_month]" style="width: 80px;">
+                    ${monthOptions}
+                  </select>
+                  <span>月</span>
+                </div>
               </div>
             </div>
             <div class="mb-2">
@@ -234,20 +251,24 @@
         const rows = licenseContainer.querySelectorAll('.license-row');
         const idx = rows.length;
         const newRow = document.createElement('div');
-        newRow.className = 'input-group mb-2 license-row';
+        newRow.className = 'row g-2 mb-2 license-row';
         
         let monthOptions = '<option value="">月</option>';
         for(let i=1; i<=12; i++) monthOptions += `<option value="${i}">${i}</option>`;
 
         newRow.innerHTML = `
-          <input type="number" class="form-control" name="licenses[${idx}][year]" placeholder="年(西暦)" style="max-width: 100px;">
-          <span class="input-group-text">年</span>
-          <select class="form-select" name="licenses[${idx}][month]" style="max-width: 80px;">
-            ${monthOptions}
-          </select>
-          <span class="input-group-text">月</span>
-          <input type="text" class="form-control" name="licenses[${idx}][name]" placeholder="資格名">
-          <button type="button" class="btn btn-outline-secondary btn-remove-license">−</button>
+          <div class="col-sm-auto d-flex align-items-center gap-1">
+            <input type="number" class="form-control" name="licenses[${idx}][year]" placeholder="年(西暦)" style="width: 110px;">
+            <span class="me-2">年</span>
+            <select class="form-select" name="licenses[${idx}][month]" style="width: 80px;">
+              ${monthOptions}
+            </select>
+            <span class="me-2">月</span>
+          </div>
+          <div class="col-sm d-flex gap-2">
+            <input type="text" class="form-control" name="licenses[${idx}][name]" placeholder="資格名">
+            <button type="button" class="btn btn-outline-secondary btn-remove-license">−</button>
+          </div>
         `;
         licenseContainer.appendChild(newRow);
       });

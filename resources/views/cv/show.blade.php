@@ -94,12 +94,33 @@
         .cv-container { box-shadow: none; margin: 0; padding: 0; max-width: 100%; }
         .no-print { display: none !important; }
       }
+      /* ダークモード等のテーマ設定による文字色反転を防ぎ、印刷用紙イメージに合わせて常に黒系統のテキストを表示します */
+      .cv-container,
+      .cv-container * {
+        color: #333 !important;
+      }
+      .cv-container th {
+        background-color: #f8f9fa !important;
+        color: #333 !important;
+      }
+      .cv-container td {
+        color: #333 !important;
+      }
+      .cv-section-title {
+        border-left: 5px solid #20c997;
+        padding-left: 10px;
+        margin-top: 30px;
+        margin-bottom: 15px;
+        font-size: 18px;
+        font-weight: bold;
+        color: #333 !important;
+      }
     </style>
   </head>
   <body>
     @if(!isset($forPdf) || !$forPdf)
       <div class="container mt-3 mb-3 no-print">
-        <div class="d-flex justify-content-between">
+        <div class="d-flex justify-content-between align-items-center mb-3">
           <div>
             @if(Auth::check())
               <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary">ダッシュボードへ戻る</a>
@@ -111,6 +132,18 @@
               <a href="{{ route('cvs.pdf', ['cv' => $cv->id, 'token' => request()->query('token')]) }}" target="_blank" class="btn btn-dark">PDF出力</a>
             @endif
             <button onclick="window.print()" class="btn btn-secondary ms-2">印刷</button>
+          </div>
+        </div>
+
+        <!-- 印刷方法の簡易説明ガイド -->
+        <div class="card mb-4 bg-light border-secondary-subtle">
+          <div class="card-body py-3 px-4">
+            <h6 class="card-title text-dark fw-bold mb-2">【ご案内】印刷・PDF保存方法</h6>
+            <ul class="text-secondary small mb-0 ps-3">
+              <li class="mb-1"><strong class="text-dark">ブラウザから直接印刷する場合：</strong> 右上の「印刷」ボタンを押すと、お使いのブラウザの印刷設定画面が開きます。プリンターを選択して印刷してください。</li>
+              <li class="mb-1"><strong class="text-dark">PDFファイルを印刷する場合：</strong> 「PDF出力」ボタンを押すと、別タブでPDFファイルが開きます。ブラウザのメニュー等にあるダウンロードボタン（下向き矢印のアイコンなど）から端末に保存し、ご自宅のプリンター、またはコンビニのプリントサービス（ネットワークプリント、かんたんnetprintなど）を利用して印刷してください。</li>
+              <li><strong class="text-dark">PDFとして保存したい場合：</strong> 「印刷」ボタンを押し、印刷設定画面の「送信先」または「プリンター」で「PDFに保存」を選択して「保存」を実行することでもPDFファイルを作成できます。</li>
+            </ul>
           </div>
         </div>
       </div>
