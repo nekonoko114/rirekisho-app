@@ -14,6 +14,7 @@ class Kernel extends ConsoleKernel
      */
     protected $commands = [
         \App\Console\Commands\TokenizeResumes::class,
+        \App\Console\Commands\CleanupGuestResumes::class,
     ];
 
     /**
@@ -21,7 +22,8 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        //
+        // daily cleanup of guest resumes
+        $schedule->command('resumes:cleanup --days=30')->daily();
     }
 
     /**

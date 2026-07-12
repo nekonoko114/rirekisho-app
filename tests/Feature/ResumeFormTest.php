@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
-use App\Models\Resume;
 
 class ResumeFormTest extends TestCase
 {
@@ -37,5 +36,39 @@ class ResumeFormTest extends TestCase
             'address_postal' => '100-0001',
             'contact_postal' => '530-0001',
         ]);
+    }
+
+    public function test_owner_can_access_edit_page()
+    {
+        $user = \App\Models\User::factory()->create(['role' => 'user']);
+        $resume = \App\Models\Resume::create([
+            'user_id' => $user->id,
+            'name' => '所有者 太郎',
+            'phone' => '03-1234-5678',
+            'address' => '東京都千代田区1-1-1',
+            'address_postal' => '100-0001',
+        ]);
+
+        $response = $this->actingAs($user)->get(route('resumes.edit', $resume));
+
+        $response->assertStatus(200);
+    }
+
+    public function test_non_owner_cannot_access_edit_page()
+    {
+        $owner = \App\Models\User::factory()->create(['role' => 'user']);
+        $resume = \App\Models\Resume::create([
+            'user_id' => $owner->id,
+            'name' => '所有者 太郎',
+            'phone' => '03-1234-5678',
+            'address' => '東京都千代田区1-1-1',
+            'address_postal' => '100-0001',
+        ]);
+
+        $nonOwner = \App\Models\User::factory()->create(['role' => 'user']);
+
+        $response = $this->actingAs($nonOwner)->get(route('resumes.edit', $resume));
+
+        $response->assertStatus(403);
     }
 }

@@ -16,7 +16,7 @@ class EnsureUserIsAdmin
         $user = $request->user();
         if (! $user || ! method_exists($user, 'isAdmin') || ! $user->isAdmin()) {
             // If guest, redirect to login; otherwise show 403
-            if (!$user) {
+            if (! $user) {
                 return Redirect::guest(route('login'));
             }
             abort(403, '管理者権限が必要です');

@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('resume_id')->constrained('resumes')->cascadeOnDelete();
             $table->smallInteger('year')->nullable();
             $table->tinyInteger('month')->nullable();
-            $table->enum('type', ['education','work'])->default('education');
+            $table->enum('type', ['education', 'work'])->default('education');
             $table->text('description')->nullable();
             $table->integer('sort_order')->default(0);
             $table->timestamps();

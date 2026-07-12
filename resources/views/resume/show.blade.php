@@ -2,7 +2,7 @@
 <html lang="ja">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=1200" />
     <link rel="stylesheet" href="{{ asset('css/resume-print.css') }}" />
     @if(isset($forPdf) && $forPdf)
       @php
@@ -12,6 +12,8 @@
       @if($css)
         <style>{!! $css !!}</style>
       @endif
+    @else
+      @vite(['resources/js/app.js'])
     @endif
     <title>履歴書プレビュー</title>
   </head>
@@ -28,7 +30,7 @@
       if ($token) { $pdfUrl .= (str_contains($pdfUrl, '?') ? '&' : '?') . 'token=' . $token; }
     @endphp
     <div style="text-align: right; margin: 8px 30px 0 0; btn">
-      <a href="{{ $pdfUrl }}" target="_blank" rel="noopener" class="print-button pdf-only">PDFを開く</a>
+      <button onclick="downloadResumePDF()" class="print-button pdf-download-btn" style="background: #4CAF50; color: white; border: none; padding: 8px 16px; cursor: pointer; border-radius: 4px;">PDFダウンロード</button>
     </div>
     @endunless
     <div class="rirekisho-container">
@@ -39,9 +41,20 @@
         </div>
 
         <div class="date-section">
-          <div class="note-box">
-            <p>写真を貼る位置</p>
-          </div>
+          @if($resume->photo_path)
+            @php
+              // Use a relative storage path to avoid absolute-URL host/port mismatches
+              // (artisan serve may run on 127.0.0.1:8000 while APP_URL is http://localhost)
+              $photoUrl = '/storage/' . ltrim($resume->photo_path, '/');
+            @endphp
+            <div class="photo-box">
+              <img src="{{ $photoUrl }}" alt="履歴書の写真" style="width:100px; height:140px; object-fit:cover; border:1px solid #ccc;" />
+            </div>
+          @else
+            <div class="note-box">
+              <p>写真を貼る位置</p>
+            </div>
+          @endif
         </div>
 
         <div class="user-name-section">
@@ -125,7 +138,7 @@
               <div class="contact-address-value">{{ $resume->contact_address }}</div>
             </div>
           </div>
-          <div class="phone-label">{{ $resume->phone }}</div>
+          <div class="phone-label">{{ $resume->contact_phone ?? '' }}</div>
         </div>
 
         <div class="email-label">メールアドレス</div>
@@ -138,8 +151,35 @@
             <th class="history-header">学　歴・職　歴</th>
           </tr>
           @php
-            // 全ての履歴（学歴＋職歴）を sort_order で結合して表示
-            $all = $resume->histories->sortBy('sort_order')->values();
+            // 全ての履歴（学歴＋職歴）
+            $educations = $resume->histories->where('type', 'education')->sortBy('sort_order')->values();
+            $works = $resume->histories->where('type', 'work')->sortBy('sort_order')->values();
+            
+            $processedHistories = collect();
+            if ($educations->count() > 0) {
+                $firstDesc = str_replace([' ', '　'], '', $educations->first()->description ?? '');
+                if ($firstDesc !== '学歴') {
+                    $processedHistories->push((object)['year' => '', 'month' => '', 'description' => '学　歴', 'is_header' => true]);
+                } else {
+                    $educations->first()->is_header = true;
+                }
+                foreach ($educations as $edu) {
+                    $processedHistories->push($edu);
+                }
+            }
+            if ($works->count() > 0) {
+                $firstDesc = str_replace([' ', '　'], '', $works->first()->description ?? '');
+                if ($firstDesc !== '職歴') {
+                    $processedHistories->push((object)['year' => '', 'month' => '', 'description' => '職　歴', 'is_header' => true]);
+                } else {
+                    $works->first()->is_header = true;
+                }
+                foreach ($works as $work) {
+                    $processedHistories->push($work);
+                }
+            }
+            $all = $processedHistories;
+
             // 最後に実データがあるインデックスを探す
             $lastFilled = null;
             foreach ($all as $k => $e) {
@@ -164,8 +204,12 @@
                 <div class="{{ trim((string)($item->month ?? '')) !== '' ? 'cell-content filled' : 'cell-content' }}">{{ $item->month ?? '' }}</div>
               </td>
               <td>
-                @php $desc = $item->description ?? ''; @endphp
-                <div class="{{ trim((string)$desc) !== '' ? 'cell-content filled' : 'cell-content' }}">
+                @php
+                  $descRaw = $item->description ?? '';
+                  // strip accidental type prefixes like "education:" or "work:"
+                  $desc = preg_replace('/^(education|work):\s*/i', '', (string)$descRaw);
+                @endphp
+                <div class="{{ trim((string)$desc) !== '' ? 'cell-content filled' : 'cell-content' }} {{ isset($item->is_header) && $item->is_header ? 'history-section-title' : '' }}">
                   @if(!is_null($markerIndex) && $i === $markerIndex)
                     {{ $desc }}@if($desc !== '')　@endif<span class="marker">以上</span>
                   @else
@@ -187,7 +231,7 @@
           </tr>
           @php
             // 右カラムには左側に表示した残りの履歴を表示（左で15行使用）
-            $all = $resume->histories->sortBy('sort_order')->values();
+            $all = isset($processedHistories) ? $processedHistories : $resume->histories->sortBy('sort_order')->values();
           @endphp
           @for ($i = 15; $i < 22; $i++)
             @php $item = $all->get($i); @endphp
@@ -199,7 +243,8 @@
                 <div class="{{ trim((string)($item->month ?? '')) !== '' ? 'cell-content filled' : 'cell-content' }}">{{ $item->month ?? '' }}</div>
               </td>
               <td>
-                <div class="{{ trim((string)($item->description ?? '')) !== '' ? 'cell-content filled' : 'cell-content' }}">{{ $item->description ?? '' }}</div>
+                @php $descRawR = $item->description ?? ''; $descR = preg_replace('/^(education|work):\s*/i', '', (string)$descRawR); @endphp
+                <div class="{{ trim((string)$descR) !== '' ? 'cell-content filled' : 'cell-content' }} {{ isset($item->is_header) && $item->is_header ? 'history-section-title' : '' }}">{{ $descR }}</div>
               </td>
             </tr>
           @endfor

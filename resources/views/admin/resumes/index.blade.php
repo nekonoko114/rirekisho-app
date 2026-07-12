@@ -4,12 +4,18 @@
 <div class="container py-4">
     <h1 class="h4 mb-3">履歴書モデレーション（未処理）</h1>
 
-    <form class="mb-3" method="GET" action="{{ route('admin.resumes.index') }}">
-        <div class="input-group">
-            <input type="search" name="q" value="{{ $q ?? '' }}" class="form-control" placeholder="名前かメールで検索">
-            <button class="btn btn-outline-secondary">検索</button>
+    <div class="mb-3 d-flex gap-2">
+        <form class="flex-grow-1" method="GET" action="{{ route('admin.resumes.index') }}">
+            <div class="input-group">
+                <input type="search" name="q" value="{{ $q ?? '' }}" class="form-control" placeholder="名前かメールで検索">
+                <button class="btn btn-outline-secondary">検索</button>
+            </div>
+        </form>
+
+        <div class="d-flex">
+            <a href="{{ route('admin.resumes.export', array_filter(['q' => $q])) }}" class="btn btn-outline-primary">CSV 書き出し</a>
         </div>
-    </form>
+    </div>
 
     @if(session('status'))
         <div class="alert alert-success">{{ session('status') }}</div>

@@ -4,3 +4,58 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Glassmorphism base for Bootstrap Cards */
+.card {
+    background-color: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Dark mode support via OS preference */
+@media (prefers-color-scheme: dark) {
+    body {
+        color: rgba(248, 250, 252, 0.9) !important;
+    }
+    .text-gray-800 {
+        color: rgba(248, 250, 252, 0.9) !important;
+    }
+    .card {
+        background-color: rgba(30, 41, 59, 0.6) !important;
+        border-color: rgba(71, 85, 105, 0.5) !important;
+        color: rgba(248, 250, 252, 0.9) !important;
+    }
+    .card-title, .h3, h1, h2, h3, h4, h5 {
+        color: rgba(248, 250, 252, 0.9) !important;
+    }
+    .text-muted, small {
+        color: rgba(148, 163, 184, 0.9) !important;
+    }
+    .form-control, .form-select, input[type="search"], input[type="text"], input[type="email"], input[type="password"] {
+        background-color: rgba(15, 23, 42, 0.6) !important;
+        color: white !important;
+        border-color: rgba(71, 85, 105, 0.5) !important;
+    }
+    .form-control::placeholder {
+        color: rgba(255, 255, 255, 0.4) !important;
+    }
+    .table {
+        color: rgba(248, 250, 252, 0.8) !important;
+        --bs-table-bg: transparent;
+        --bs-table-color: rgba(248, 250, 252, 0.8);
+        --bs-table-border-color: rgba(255, 255, 255, 0.1);
+    }
+    .table-responsive {
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+    .btn-outline-secondary {
+        color: rgba(255, 255, 255, 0.8);
+        border-color: rgba(255, 255, 255, 0.3);
+    }
+    .btn-outline-secondary:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        color: white;
+    }
+}

@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use Symfony\Component\Process\Process;
 use Illuminate\Support\Facades\Log;
+use Symfony\Component\Process\Process;
 
 class PdfGenerator
 {
@@ -13,20 +13,20 @@ class PdfGenerator
         $options = config('snappy.pdf.options', []);
         $env = config('snappy.pdf.env', []);
 
-        $tmpDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'laravel_snappy';
+        $tmpDir = sys_get_temp_dir().DIRECTORY_SEPARATOR.'laravel_snappy';
         if (! is_dir($tmpDir)) {
             @mkdir($tmpDir, 0777, true);
         }
 
-        $inFile = tempnam($tmpDir, 'html_') . '.html';
-        $outFile = tempnam($tmpDir, 'pdf_') . '.pdf';
+        $inFile = tempnam($tmpDir, 'html_').'.html';
+        $outFile = tempnam($tmpDir, 'pdf_').'.pdf';
 
         file_put_contents($inFile, $html);
 
         // Build args
         $args = [$binary];
         foreach ($options as $k => $v) {
-            $flag = '--' . $k;
+            $flag = '--'.$k;
             if (is_bool($v)) {
                 if ($v) {
                     $args[] = $flag;
@@ -46,8 +46,8 @@ class PdfGenerator
             $process->run();
 
             if (! $process->isSuccessful()) {
-                Log::error('wkhtmltopdf failed: ' . $process->getErrorOutput());
-                throw new \RuntimeException('wkhtmltopdf failed: ' . $process->getErrorOutput());
+                Log::error('wkhtmltopdf failed: '.$process->getErrorOutput());
+                throw new \RuntimeException('wkhtmltopdf failed: '.$process->getErrorOutput());
             }
 
             $contents = @file_get_contents($outFile);
@@ -64,7 +64,7 @@ class PdfGenerator
         } catch (\Throwable $e) {
             @unlink($inFile);
             @unlink($outFile);
-            Log::error('PdfGenerator error: ' . $e->getMessage());
+            Log::error('PdfGenerator error: '.$e->getMessage());
             throw $e;
         }
     }

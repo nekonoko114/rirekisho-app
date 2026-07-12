@@ -9,7 +9,7 @@ class ResumeProfile extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['resume_id','motivation','personal_requests'];
+    protected $fillable = ['resume_id', 'motivation', 'personal_requests'];
 
     public function resume()
     {

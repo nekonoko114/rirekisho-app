@@ -1,4 +1,4 @@
-<nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
+<nav x-data="{ open: false }" class="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border-b border-white/50 dark:border-slate-700/50 sticky top-0 z-50">
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
@@ -6,7 +6,7 @@
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('dashboard') }}">
-                        <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />
+                        <x-application-logo class="block h-9 w-auto fill-current text-gray-800 dark:text-gray-200" />
                     </a>
                 </div>
 
@@ -17,14 +17,19 @@
                     </x-nav-link>
                     @auth
                         @php $user = Auth::user(); @endphp
-                        @if($user && method_exists($user, 'isAdmin') && $user->isAdmin() && Route::has('admin.users.index'))
-                            <x-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
-                                {{ __('ユーザー一覧') }}
+                        @if($user && method_exists($user, 'isAdmin') && $user->isAdmin())
+                            @if(Route::has('admin.users.index'))
+                                <x-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
+                                    {{ __('ユーザー一覧') }}
+                                </x-nav-link>
+                            @endif
+                            <x-nav-link :href="route('admin.cvs.index')" :active="request()->routeIs('admin.cvs.*')">
+                                {{ __('職務経歴書一覧') }}
                             </x-nav-link>
                         @endif
 
                         <x-nav-link :href="route('resumes.index')" :active="request()->routeIs('resumes.*')">
-                            {{ __('投稿一覧') }}
+                            {{ __('履歴書一覧') }}
                         </x-nav-link>
                     @endauth
                 </div>
@@ -45,8 +50,8 @@
             <div class="hidden sm:flex sm:items-center sm:ms-6">
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
-                        <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
-                            <div>{{ Auth::user()->name }}</div>
+                        <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-600 dark:text-gray-300 bg-transparent hover:text-gray-800 dark:hover:text-gray-100 focus:outline-none transition ease-in-out duration-150">
+                            <div>{{ Auth::user()->isAdmin() ? '管理者' : Auth::user()->name }}</div>
 
                             <div class="ms-1">
                                 <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
@@ -88,7 +93,7 @@
     </div>
 
     <!-- Responsive Navigation Menu -->
-    <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
+    <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-gray-200 dark:border-slate-700">
         <div class="pt-2 pb-3 space-y-1">
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
@@ -96,23 +101,28 @@
 
             @auth
                 @php $user = Auth::user(); @endphp
-                @if($user && method_exists($user, 'isAdmin') && $user->isAdmin() && Route::has('admin.users.index'))
-                    <x-responsive-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
-                        {{ __('ユーザー一覧') }}
+                @if($user && method_exists($user, 'isAdmin') && $user->isAdmin())
+                    @if(Route::has('admin.users.index'))
+                        <x-responsive-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
+                            {{ __('ユーザー一覧') }}
+                        </x-responsive-nav-link>
+                    @endif
+                    <x-responsive-nav-link :href="route('admin.cvs.index')" :active="request()->routeIs('admin.cvs.*')">
+                        {{ __('職務経歴書一覧') }}
                     </x-responsive-nav-link>
                 @endif
 
                 <x-responsive-nav-link :href="route('resumes.index')" :active="request()->routeIs('resumes.*')">
-                    {{ __('投稿一覧') }}
+                    {{ __('履歴書一覧') }}
                 </x-responsive-nav-link>
             @endauth
         </div>
 
         <!-- Responsive Settings Options -->
-        <div class="pt-4 pb-1 border-t border-gray-200">
+        <div class="pt-4 pb-1 border-t border-gray-200 dark:border-slate-700">
             <div class="px-4">
-                <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
-                <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
+                <div class="font-medium text-base text-gray-800 dark:text-gray-200">{{ Auth::user()->isAdmin() ? '管理者' : Auth::user()->name }}</div>
+                <div class="font-medium text-sm text-gray-500 dark:text-gray-400">{{ Auth::user()->email }}</div>
             </div>
 
             <div class="mt-3 space-y-1">

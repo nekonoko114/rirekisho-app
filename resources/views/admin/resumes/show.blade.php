@@ -49,10 +49,16 @@
     <h5>プロフィール</h5>
     <p>{{ $resume->profile->motivation ?? '' }}</p>
 
-    <h5>学歴/職歴</h5>
+    <h5>学歴／職歴</h5>
     <ul>
         @foreach($resume->histories as $h)
-            <li>{{ $h->type }}: {{ $h->year }}{{ $h->month ? '/'.$h->month : '' }} — {{ $h->description }}</li>
+            @php
+                // map type to Japanese label or leave as-is for unknown types
+                $label = ($h->type === 'education') ? '学歴' : (($h->type === 'work') ? '職歴' : $h->type);
+                // remove accidental prefixes stored in description
+                $desc = preg_replace('/^(education|work):\s*/i', '', (string)($h->description ?? ''));
+            @endphp
+            <li>{{ $label }}: {{ $h->year }}{{ $h->month ? '/'.$h->month : '' }} — {{ $desc }}</li>
         @endforeach
     </ul>
 
