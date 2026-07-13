@@ -354,7 +354,7 @@
                 <div class="form-section text-center">
                   <label class="form-label">写真（任意）</label>
                   <div class="mb-2">
-                    <img id="photoPreview" src="" alt="写真プレビュー" class="photo-preview d-none" />
+                    <img id="photoPreview" src="" alt="写真プレビュー" class="photo-preview d-none" style="width: 100px; height: 140px; object-fit: cover; border: 1px solid #ccc; margin: 0 auto; display: block;" />
                   </div>
                   <input type="file" name="photo" accept="image/*" class="form-control" id="photoInput">
                   <div class="form-text">推奨サイズ: 縦140×横100 など証明写真に近い比率</div>

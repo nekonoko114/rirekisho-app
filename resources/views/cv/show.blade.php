@@ -18,6 +18,12 @@
         color: #333;
         font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
       }
+      @media print {
+        @page {
+          size: A4 portrait;
+          margin: 15mm;
+        }
+      }
       .cv-container {
         max-width: 800px;
         margin: 2rem auto;

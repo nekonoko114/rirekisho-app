@@ -12,7 +12,7 @@
 
 body {
     font-family: "MS Gothic", "Yu Gothic", sans-serif;
-    font-size: 14px;
+    font-size: 12px;
     padding: 0;
 }
 
@@ -20,7 +20,7 @@ body {
     background: #fff;
     display: flex;
     gap: 20px;
-    max-width: 1400px;
+    width: 1200px;
     margin: 0 auto;
     background-color: white;
     /* Vertically center pages within the viewport so top/bottom margins appear even */
@@ -50,7 +50,7 @@ body {
 
 /* タイトル */
 .title {
-    font-size: 32px;
+    font-size: 26px;
     font-weight: bold;
     text-align: center;
     font-weight: 100;
@@ -66,7 +66,7 @@ body {
 }
 
 .date-label {
-    font-size: 14px;
+    font-size: 12px;
 }
 
 .photo-box, .note-box {
@@ -88,7 +88,7 @@ body {
 
 .note-box {
     border: 1px dotted #000;
-    font-size: 10px;
+    font-size: 9px;
     color: #333;
 }
 
@@ -107,25 +107,26 @@ body {
     border: 1px solid #333;
 }
 .furigana {
-    font-size: 9px;
+    font-size: 8px;
     border-bottom: 1px solid #333;
 }
 
 .name-label {
-    height: 65px;
-    font-size: 12px;
+    height: 55px;
+    font-size: 10px;
 }
 .birth {
     border: 1px solid #333;
     display: flex;
-    font-size: 12px;
-    height: 40px;
-    line-height: 40px;
+    font-size: 10px;
+    height: 32px;
+    line-height: 32px;
     text-align: center;
+    width: 70%;
 }
 
 .gender {
-    font-size: 12px;
+    font-size: 10px;
 }
 
 .birth-wrapper {
@@ -134,7 +135,7 @@ body {
 }
 .contact-address-value {
     text-align: center;
-    font-size: 14px;
+    font-size: 11px;
 }
 .address-section,
 .contact-address-section {
@@ -156,10 +157,10 @@ body {
 
 .address-detail,
 .contact-address-detail {
-    font-size: 9px;
-    height: 60px;
-    line-height: 20px;
-    padding: 5px 10px;
+    font-size: 8px;
+    height: 42px;
+    line-height: 14px;
+    padding: 2px 10px;
 }
 .contact-address-section {
     display: flex;
@@ -171,25 +172,24 @@ body {
 .contact-address-label {
 }
 .phone-label {
-    font-size: 12px;
+    font-size: 10px;
     width: 20%;
     border-left: 1px solid #333;
-    padding: 18px 4px;
+    padding: 10px 4px;
 }
 .email-label {
     width: 100%;
-    font-size: 12px;
     border: 1px solid #333;
-    font-size: 9px;
+    font-size: 8px;
 }
 .email-value {
-    font-size: 14px;
+    font-size: 10px;
     width: 100%;
     border: 1px solid #333;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
     text-align: center;
-    height: 30px;
-    line-height: 2;
+    height: 22px;
+    line-height: 22px;
 }
 
 /* テーブル共通スタイル */
@@ -202,8 +202,8 @@ table {
 td,
 th {
     border: 1px solid #000;
-    padding: 6px;
-    font-size: 15px;
+    padding: 2px 5px;
+    font-size: 10.5px;
 }
 
 .label-cell {
@@ -215,7 +215,7 @@ th {
 }
 
 .small-label {
-    font-size: 11px;
+    font-size: 10px;
     padding: 4px;
 }
 
@@ -230,7 +230,7 @@ th {
 }
 
 .name-cell {
-    font-size: 20px;
+    font-size: 18px;
     height: 86px;
 }
 
@@ -248,7 +248,7 @@ th {
     align-items: center;
     justify-content: center;
     background-color: #f9f9f9;
-    font-size: 14px;
+    font-size: 12px;
     color: #999;
 }
 
@@ -261,24 +261,29 @@ th {
     width: 60%;
 }
 .furigana-value {
-    font-size: 12px;
+    font-size: 10px;
     text-align: center;
+}
+.gender-block {
+    width: 30%;
+    display: flex;
+    align-items: center;
+    height: 100%;
 }
 .gender-label {
     background-color: #f5f5f5;
     font-weight: bold;
-    width: 15%;
-    text-align: center;
-    margin-left: 10px;
+    width: 40%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-right: 1px solid #333;
+    font-size: 10px;
 }
-.name-value {
-    font-size: 18px;
-    right: 12px;
+.gender-value {
     text-align: center;
-}
-.address-value {
-    text-align: center;
-    font-size: 14px;
+    flex: 1;
 }
 
 /* 住所テーブル */
@@ -339,9 +344,9 @@ th {
 .history-table tr td,
 .history-table-right tr td,
 .license-table tr td {
-    height: 30px;
+    height: 22px;
     vertical-align: top;
-    padding: 5px;
+    padding: 2px 5px;
 }
 
 /* 注記 */
@@ -353,12 +358,12 @@ th {
 
 /* 免許・資格テーブル */
 .license-table {
-    margin-bottom: 15px;
+    margin-bottom: 10px;
 }
 
 /* 志望動機セクション */
 .motivation-section {
-    margin-bottom: 15px;
+    margin-bottom: 10px;
 }
 
 .section-header {
@@ -373,13 +378,13 @@ th {
 .content-area {
     border: 1px solid #000;
     border-top: none;
-    min-height: 200px;
+    min-height: 110px;
     padding: 10px;
 }
 
 /* 本人希望欄 */
 .request-section {
-    margin-top: 15px;
+    margin-top: 10px;
 }
 
 .request-area {
@@ -390,7 +395,7 @@ th {
 .request-row {
     border-bottom: 1px solid #000;
     /* Use min-height instead of fixed height to avoid forcing overflow */
-    min-height: 122px;
+    min-height: 60px;
     padding: 8px;
     /* Avoid breaking this block across pages */
     page-break-inside: avoid;
@@ -402,16 +407,21 @@ th {
 
 /* 印刷時の調整 */
 @media print {
-    body {
-        background-color: white;
+    html, body {
+        height: 100%;
+        margin: 0;
         padding: 0;
     }
 
     .rirekisho-container {
         gap: 0;
-        /* keep vertical centering in print as well */
         align-items: center;
-        min-height: 100vh;
+        height: 100%;
+        width: 100%;
+    }
+
+    .no-print {
+        display: none !important;
     }
 
     /* Hide page borders in printed PDF to avoid fragments on next page */

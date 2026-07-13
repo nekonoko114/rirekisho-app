@@ -291,7 +291,9 @@
                   <label class="form-label">写真（任意）</label>
                   <div class="mb-2">
                     @if($resume->photo_path)
-                      <img src="{{ asset('storage/'.$resume->photo_path) }}" class="img-fluid" style="max-width:140px;" alt="photo">
+                      <img src="{{ asset('storage/'.$resume->photo_path) }}" id="photoPreview" style="width: 100px; height: 140px; object-fit: cover; border: 1px solid #ccc; margin: 0 auto; display: block;" alt="photo">
+                    @else
+                      <img id="photoPreview" src="" alt="写真プレビュー" class="photo-preview d-none" style="width: 100px; height: 140px; object-fit: cover; border: 1px solid #ccc; margin: 0 auto; display: block;" />
                     @endif
                   </div>
                   <input type="file" name="photo" accept="image/*" class="form-control">

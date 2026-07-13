@@ -29,7 +29,8 @@
       }
       if ($token) { $pdfUrl .= (str_contains($pdfUrl, '?') ? '&' : '?') . 'token=' . $token; }
     @endphp
-    <div style="text-align: right; margin: 8px 30px 0 0; btn">
+    <div class="no-print" style="text-align: right; margin: 8px 30px 0 0;">
+      <button onclick="window.print()" class="print-button preview-btn" style="background: #2196F3; color: white; border: none; padding: 8px 16px; cursor: pointer; border-radius: 4px; margin-right: 8px;">印刷プレビュー</button>
       <button onclick="downloadResumePDF()" class="print-button pdf-download-btn" style="background: #4CAF50; color: white; border: none; padding: 8px 16px; cursor: pointer; border-radius: 4px;">PDFダウンロード</button>
     </div>
     @endunless
