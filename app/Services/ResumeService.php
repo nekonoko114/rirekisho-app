@@ -106,7 +106,9 @@ class ResumeService
             return;
         }
 
-        foreach (preg_split('/\r\n|\r|\n/', $text) as $line) {
+        $lines = array_slice(preg_split('/\r\n|\r|\n/', $text) ?: [], 0, 50);
+
+        foreach ($lines as $line) {
             $line = trim($line);
             if ($line === '') {
                 continue;
@@ -125,7 +127,7 @@ class ResumeService
             $resume->licenses()->create([
                 'year' => $year,
                 'month' => $month,
-                'name' => $rest,
+                'name' => mb_substr($rest, 0, 255),
                 'details' => null,
             ]);
         }

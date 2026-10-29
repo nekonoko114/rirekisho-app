@@ -15,13 +15,20 @@ class PdfGenerator
 
         $tmpDir = sys_get_temp_dir().DIRECTORY_SEPARATOR.'laravel_snappy';
         if (! is_dir($tmpDir)) {
-            @mkdir($tmpDir, 0777, true);
+            @mkdir($tmpDir, 0700, true);
         }
 
-        $inFile = tempnam($tmpDir, 'html_').'.html';
-        $outFile = tempnam($tmpDir, 'pdf_').'.pdf';
+        $inBase = tempnam($tmpDir, 'html_');
+        $outBase = tempnam($tmpDir, 'pdf_');
+        $inFile = $inBase.'.html';
+        $outFile = $outBase.'.pdf';
 
         file_put_contents($inFile, $html);
+        @chmod($inFile, 0600);
+
+        if (! array_key_exists('disable-javascript', $options)) {
+            $options['disable-javascript'] = true;
+        }
 
         // Build args
         $args = [$binary];
@@ -42,7 +49,7 @@ class PdfGenerator
         $args[] = $outFile;
 
         try {
-            $process = new Process($args, null, $env, null, null);
+            $process = new Process($args, null, $env, null, 30);
             $process->run();
 
             if (! $process->isSuccessful()) {
@@ -52,20 +59,19 @@ class PdfGenerator
 
             $contents = @file_get_contents($outFile);
 
-            // cleanup
-            @unlink($inFile);
-            @unlink($outFile);
-
             if ($contents === false) {
                 throw new \RuntimeException('Failed to read generated PDF');
             }
 
             return $contents;
         } catch (\Throwable $e) {
-            @unlink($inFile);
-            @unlink($outFile);
             Log::error('PdfGenerator error: '.$e->getMessage());
             throw $e;
+        } finally {
+            @unlink((string) $inBase);
+            @unlink((string) $outBase);
+            @unlink($inFile);
+            @unlink($outFile);
         }
     }
 }

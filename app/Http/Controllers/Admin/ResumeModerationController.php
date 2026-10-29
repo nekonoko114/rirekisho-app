@@ -83,7 +83,7 @@ class ResumeModerationController extends Controller
     public function export(Request $request)
     {
         $q = $request->get('q');
-        $query = Resume::with('profile')->orderBy('created_at', 'desc');
+        $query = Resume::with(['profile', 'user'])->orderBy('created_at', 'desc');
         $query->whereNull('reviewed_at');
         if ($q) {
             $query->where(function ($b) use ($q) {
@@ -91,7 +91,7 @@ class ResumeModerationController extends Controller
             });
         }
 
-        $rows = $query->get()->map(fn (Resume $r) => [
+        $rows = $query->lazy(200)->map(fn (Resume $r) => [
             $r->id,
             $r->name,
             $r->email ?? ($r->user ? $r->user->email : ''),

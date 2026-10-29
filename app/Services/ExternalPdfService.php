@@ -89,17 +89,18 @@ class ExternalPdfService
 
             // Response might be JSON with PDF URL or base64
             $json = json_decode($body, true);
-            if ($json && isset($json['pdf'])) {
-                // If it's a URL, download it
-                if (filter_var($json['pdf'], FILTER_VALIDATE_URL)) {
-                    $pdfResponse = Http::timeout(60)->get($json['pdf']);
+            if ($json && isset($json['pdf']) && is_string($json['pdf'])) {
+                // If it's a trusted HTTPS URL on html2pdf.app, download it (mitigates SSRF)
+                if (filter_var($json['pdf'], FILTER_VALIDATE_URL) && $this->isTrustedPdfUrl($json['pdf'], 'html2pdf.app')) {
+                    $pdfResponse = Http::timeout(30)->get($json['pdf']);
                     if ($pdfResponse->successful()) {
                         return $pdfResponse->body();
                     }
                 }
                 // If it's base64, decode it
-                if (base64_decode($json['pdf'], true) !== false) {
-                    return base64_decode($json['pdf']);
+                $decoded = base64_decode($json['pdf'], true);
+                if ($decoded !== false && strpos($decoded, '%PDF') === 0) {
+                    return $decoded;
                 }
             }
 
@@ -146,5 +147,25 @@ class ExternalPdfService
         Log::error('PDFShift API failed: '.$response->status().' - '.$response->body());
 
         return null;
+    }
+
+    /**
+     * Validate that a returned download URL uses HTTPS and belongs to the expected provider domain.
+     */
+    protected function isTrustedPdfUrl(string $url, string $allowedDomain): bool
+    {
+        $parts = parse_url($url);
+        if (! is_array($parts)) {
+            return false;
+        }
+
+        $scheme = strtolower($parts['scheme'] ?? '');
+        $host = strtolower($parts['host'] ?? '');
+
+        if ($scheme !== 'https' || $host === '') {
+            return false;
+        }
+
+        return $host === $allowedDomain || str_ends_with($host, '.'.$allowedDomain);
     }
 }

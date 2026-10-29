@@ -39,8 +39,8 @@ class UserController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email',
-            'password' => 'required|string|min:8|confirmed',
-            'role' => 'nullable|string|max:50',
+            'password' => 'required|string|min:8|max:255|confirmed',
+            'role' => 'nullable|string|in:user,admin',
         ]);
 
         $data['password'] = Hash::make($data['password']);
@@ -74,8 +74,8 @@ class UserController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email,'.$user->id,
-            'password' => 'nullable|string|min:8|confirmed',
-            'role' => 'nullable|string|max:50',
+            'password' => 'nullable|string|min:8|max:255|confirmed',
+            'role' => 'nullable|string|in:user,admin',
         ]);
 
         if (! empty($data['password'])) {
@@ -98,8 +98,12 @@ class UserController extends Controller
         return redirect()->route('admin.users.index')->with('status', 'ユーザーを更新しました');
     }
 
-    public function destroy(User $user)
+    public function destroy(Request $request, User $user)
     {
+        if ($request->user() && $request->user()->id === $user->id) {
+            abort(403, '自分自身のアカウントは削除できません');
+        }
+
         $user->delete();
 
         return redirect()->route('admin.users.index')->with('status', 'ユーザーを削除しました');

@@ -15,17 +15,36 @@ class CsvResponse
      */
     public static function stream(string $filename, array $header, iterable $rows): StreamedResponse
     {
+        $safeFilename = preg_replace('/[^A-Za-z0-9._-]/', '_', basename($filename)) ?: 'export.csv';
+
         return response()->stream(function () use ($header, $rows) {
             $out = fopen('php://output', 'w');
             fwrite($out, "\xEF\xBB\xBF");
-            fputcsv($out, $header);
+            fputcsv($out, array_map([self::class, 'sanitizeCell'], $header));
             foreach ($rows as $row) {
-                fputcsv($out, $row);
+                fputcsv($out, array_map([self::class, 'sanitizeCell'], (array) $row));
             }
             fclose($out);
         }, 200, [
             'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+            'Content-Disposition' => 'attachment; filename="'.$safeFilename.'"',
+            'X-Content-Type-Options' => 'nosniff',
         ]);
+    }
+
+    /**
+     * Neutralize spreadsheet formula injection payloads (=, +, -, @, tab, CR/LF).
+     */
+    public static function sanitizeCell(mixed $value): mixed
+    {
+        if (! is_string($value) || $value === '') {
+            return $value;
+        }
+
+        if (preg_match('/^[\s]*[=+\-@\t\r\n]/u', $value) === 1) {
+            return "'".$value;
+        }
+
+        return $value;
     }
 }

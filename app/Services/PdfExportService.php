@@ -78,9 +78,13 @@ class PdfExportService
 
     protected function pdfResponse(string $content, string $filename, string $disposition): Response
     {
+        $safeFilename = preg_replace('/[^A-Za-z0-9._-]/', '_', basename($filename)) ?: 'document.pdf';
+        $safeDisposition = in_array($disposition, ['inline', 'attachment'], true) ? $disposition : 'inline';
+
         return response($content, 200, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => $disposition.'; filename="'.$filename.'"',
+            'Content-Disposition' => $safeDisposition.'; filename="'.$safeFilename.'"',
+            'X-Content-Type-Options' => 'nosniff',
         ]);
     }
 }

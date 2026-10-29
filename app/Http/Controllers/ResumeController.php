@@ -47,12 +47,12 @@ class ResumeController extends Controller
             return redirect()->route('login');
         }
 
-        $query = Resume::orderBy('id', 'desc');
+        $query = Resume::with('user')->orderBy('id', 'desc');
         if (! $user->isAdmin()) {
             $query->where('user_id', $user->id);
         }
 
-        $rows = $query->get()->map(fn (Resume $r) => [
+        $rows = $query->lazy(200)->map(fn (Resume $r) => [
             $r->id,
             $r->name,
             $r->furigana ?? '',

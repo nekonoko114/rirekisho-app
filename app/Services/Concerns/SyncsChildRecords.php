@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 trait SyncsChildRecords
 {
+    private const MAX_CHILD_ROWS = 50;
+
     /**
      * Blind-insert child rows (used on document creation).
      *
@@ -18,7 +20,7 @@ trait SyncsChildRecords
      */
     protected function createChildren(HasMany $relation, array $rows, callable $mapRow): void
     {
-        foreach (array_values($rows) as $i => $row) {
+        foreach (array_slice(array_values($rows), 0, self::MAX_CHILD_ROWS) as $i => $row) {
             $data = $mapRow((array) $row, $i);
             if ($data !== null) {
                 $relation->create($data);
@@ -38,7 +40,7 @@ trait SyncsChildRecords
         $existing = $relation->get()->keyBy('id');
         $seenIds = [];
 
-        foreach (array_values($rows) as $i => $row) {
+        foreach (array_slice(array_values($rows), 0, self::MAX_CHILD_ROWS) as $i => $row) {
             $row = (array) $row;
             $data = $mapRow($row, $i);
             if ($data === null) {

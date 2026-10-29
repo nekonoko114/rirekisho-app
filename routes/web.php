@@ -37,20 +37,20 @@ require __DIR__.'/auth.php';
 
 // Resume routes: guests can create/store/show
 Route::get('resumes/create', [ResumeController::class, 'create'])->name('resumes.create');
-Route::post('resumes', [ResumeController::class, 'store'])->name('resumes.store');
+Route::post('resumes', [ResumeController::class, 'store'])->middleware('throttle:20,1')->name('resumes.store');
 // Register the export route before the `{resume}` parameter route so the literal
 // path `resumes/export` does not get captured by the `{resume}` binding.
-Route::get('resumes/export', [ResumeController::class, 'export'])->name('resumes.export');
+Route::get('resumes/export', [ResumeController::class, 'export'])->middleware('throttle:30,1')->name('resumes.export');
 
-Route::get('resumes/{resume}', [ResumeController::class, 'show'])->name('resumes.show');
+Route::get('resumes/{resume}', [ResumeController::class, 'show'])->middleware('throttle:60,1')->name('resumes.show');
 // PDF export (uses server-side generator if installed)
-Route::get('resumes/{resume}/pdf', [ResumeController::class, 'pdf'])->name('resumes.pdf');
+Route::get('resumes/{resume}/pdf', [ResumeController::class, 'pdf'])->middleware('throttle:15,1')->name('resumes.pdf');
 
 // CV routes: guests can create/store/show
 Route::get('cvs/create', [App\Http\Controllers\CvController::class, 'create'])->name('cvs.create');
-Route::post('cvs', [App\Http\Controllers\CvController::class, 'store'])->name('cvs.store');
-Route::get('cvs/{cv}', [App\Http\Controllers\CvController::class, 'show'])->name('cvs.show');
-Route::get('cvs/{cv}/pdf', [App\Http\Controllers\CvController::class, 'pdf'])->name('cvs.pdf');
+Route::post('cvs', [App\Http\Controllers\CvController::class, 'store'])->middleware('throttle:20,1')->name('cvs.store');
+Route::get('cvs/{cv}', [App\Http\Controllers\CvController::class, 'show'])->middleware('throttle:60,1')->name('cvs.show');
+Route::get('cvs/{cv}/pdf', [App\Http\Controllers\CvController::class, 'pdf'])->middleware('throttle:15,1')->name('cvs.pdf');
 
 // Debug routes removed. Use authenticated admin flows for testing instead.
 
