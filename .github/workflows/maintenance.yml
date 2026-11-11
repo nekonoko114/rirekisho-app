@@ -1,0 +1,61 @@
+name: Maintenance Mode
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: '実行する操作を選択してください (down: メンテナンス開始 / up: メンテナンス解除 / status: 状態確認)'
+        required: true
+        type: choice
+        default: 'down'
+        options:
+          - 'down'
+          - 'up'
+          - 'status'
+      secret:
+        description: 'バイパス用シークレットキー（down時のみ任意。指定すると https://ドメイン/キー でメンテナンスを迂回できます）'
+        required: false
+        type: string
+        default: ''
+
+jobs:
+  maintenance:
+    name: Manage Maintenance Mode
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install SSH Key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.XSERVER_SSH_KEY }}
+          known_hosts: 'unnecessary'
+          config: |
+            Host *
+              StrictHostKeyChecking no
+              PubkeyAcceptedAlgorithms +ssh-rsa
+              HostKeyAlgorithms +ssh-rsa
+
+      - name: Execute Maintenance Command
+        run: |
+          ACTION="${{ inputs.action }}"
+          SECRET="${{ inputs.secret }}"
+
+          CMD=""
+          if [ "$ACTION" = "down" ]; then
+            if [ -n "$SECRET" ]; then
+              CMD="php8.2 artisan down --secret=\"$SECRET\""
+            else
+              CMD="php8.2 artisan down"
+            fi
+          elif [ "$ACTION" = "up" ]; then
+            CMD="php8.2 artisan up"
+          elif [ "$ACTION" = "status" ]; then
+            CMD="if [ -f storage/framework/down ]; then echo '【状態】メンテナンスモード稼働中 (down)'; cat storage/framework/down; echo ''; else echo '【状態】通常稼働中 (up)'; fi"
+          fi
+
+          echo "実行内容: $CMD"
+
+          ssh -p ${{ secrets.XSERVER_PORT }} -o StrictHostKeyChecking=no -o PubkeyAcceptedAlgorithms=+ssh-rsa -o HostKeyAlgorithms=+ssh-rsa ${{ secrets.XSERVER_USER }}@${{ secrets.XSERVER_HOST }} << EOF
+            set -e
+            cd ~/resume-app
+            $CMD
+          EOF
