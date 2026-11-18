@@ -7,10 +7,11 @@ if (! file_exists($vendor)) {
 }
 require $vendor;
 $app = require __DIR__.'/../bootstrap/app.php';
-$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+$kernel = $app->make(Kernel::class);
 $kernel->bootstrap();
 
 use App\Models\Resume;
+use Illuminate\Contracts\Console\Kernel;
 
 $r = Resume::orderBy('id', 'desc')->first();
 if ($r) {

@@ -1,4 +1,4 @@
-import jsPDF from "jspdf";
+import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 
 /**
@@ -22,14 +22,25 @@ window.downloadResumePDF = async function () {
             throw new Error("Resume pages not found");
         }
 
-        // Canvas options for better quality
+        // Canvas options for better quality and fixed layout regardless of viewport size
         const canvasOptions = {
             scale: 3,
             useCORS: true,
             logging: false,
             backgroundColor: "#ffffff",
-            windowWidth: 1200,
+            windowWidth: 1400,
             allowTaint: true,
+            onclone: (clonedDoc) => {
+                const container = clonedDoc.querySelector(".rirekisho-container");
+                if (container) {
+                    container.style.width = "1360px";
+                    container.style.maxWidth = "none";
+                }
+                clonedDoc.querySelectorAll(".page").forEach((page) => {
+                    page.style.width = "670px";
+                    page.style.flex = "0 0 670px";
+                });
+            },
         };
 
         // Capture both pages separately

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Cv;
 use App\Models\Resume;
 use App\Models\User;
 use Carbon\Carbon;
@@ -19,9 +20,9 @@ class DashboardController extends Controller
         $recentResumes = Resume::where('user_id', $user->id)->orderBy('created_at', 'desc')->take(5)->get();
         $publicResumes = Resume::where('user_id', $user->id)->whereNotNull('public_token')->orderBy('created_at', 'desc')->get();
 
-        $cvCount = \App\Models\Cv::where('user_id', $user->id)->count();
-        $recentCvs = \App\Models\Cv::where('user_id', $user->id)->orderBy('created_at', 'desc')->take(5)->get();
-        $publicCvs = \App\Models\Cv::where('user_id', $user->id)->whereNotNull('public_token')->orderBy('created_at', 'desc')->get();
+        $cvCount = Cv::where('user_id', $user->id)->count();
+        $recentCvs = Cv::where('user_id', $user->id)->orderBy('created_at', 'desc')->take(5)->get();
+        $publicCvs = Cv::where('user_id', $user->id)->whereNotNull('public_token')->orderBy('created_at', 'desc')->get();
 
         // Admin widgets
         $adminTotals = null;

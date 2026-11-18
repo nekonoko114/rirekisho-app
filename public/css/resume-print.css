@@ -14,22 +14,23 @@ body {
     font-family: "MS Gothic", "Yu Gothic", sans-serif;
     font-size: 14px;
     padding: 0;
+    min-width: 1360px;
 }
 
 .rirekisho-container {
     background: #fff;
     display: flex;
     gap: 20px;
-    max-width: 1400px;
+    width: 1360px;
     margin: 0 auto;
     background-color: white;
-    /* Vertically center pages within the viewport so top/bottom margins appear even */
-    align-items: center;
-    min-height: 100vh;
+    align-items: flex-start;
+    padding: 16px 0;
 }
 
 .page {
-    flex: 1;
+    flex: 0 0 670px;
+    width: 670px;
     background: white;
     padding: 12px;
     /* border: 2px solid #000; */
@@ -93,9 +94,10 @@ body {
 }
 
 .photo-box img {
-    max-width: 120px;
-    max-height: 140px;
+    width: 100%;
+    height: 100%;
     object-fit: cover;
+    display: block;
 }
 
 .note-box p {
@@ -405,17 +407,21 @@ th {
     body {
         background-color: white;
         padding: 0;
+        min-width: 0;
     }
 
     .rirekisho-container {
-        gap: 0;
-        /* keep vertical centering in print as well */
-        align-items: center;
-        min-height: 100vh;
+        width: 277mm;
+        gap: 6mm;
+        align-items: flex-start;
+        min-height: auto;
+        padding: 0;
     }
 
     /* Hide page borders in printed PDF to avoid fragments on next page */
     .page {
+        flex: 1 1 0;
+        width: auto;
         border: none;
         page-break-after: avoid;
     }

@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Models\Resume;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -40,8 +42,8 @@ class ResumeFormTest extends TestCase
 
     public function test_owner_can_access_edit_page()
     {
-        $user = \App\Models\User::factory()->create(['role' => 'user']);
-        $resume = \App\Models\Resume::create([
+        $user = User::factory()->create(['role' => 'user']);
+        $resume = Resume::create([
             'user_id' => $user->id,
             'name' => '所有者 太郎',
             'phone' => '03-1234-5678',
@@ -56,8 +58,8 @@ class ResumeFormTest extends TestCase
 
     public function test_non_owner_cannot_access_edit_page()
     {
-        $owner = \App\Models\User::factory()->create(['role' => 'user']);
-        $resume = \App\Models\Resume::create([
+        $owner = User::factory()->create(['role' => 'user']);
+        $resume = Resume::create([
             'user_id' => $owner->id,
             'name' => '所有者 太郎',
             'phone' => '03-1234-5678',
@@ -65,7 +67,7 @@ class ResumeFormTest extends TestCase
             'address_postal' => '100-0001',
         ]);
 
-        $nonOwner = \App\Models\User::factory()->create(['role' => 'user']);
+        $nonOwner = User::factory()->create(['role' => 'user']);
 
         $response = $this->actingAs($nonOwner)->get(route('resumes.edit', $resume));
 

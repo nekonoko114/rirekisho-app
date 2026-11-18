@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Drivers\Imagick\Driver;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Modifiers\CoverModifier;
 
@@ -45,7 +46,7 @@ class ResumePhotoService
         }
 
         $driverClass = extension_loaded('imagick')
-            ? \Intervention\Image\Drivers\Imagick\Driver::class
+            ? Driver::class
             : \Intervention\Image\Drivers\Gd\Driver::class;
 
         $img = (new ImageManager($driverClass))->read($realPath);

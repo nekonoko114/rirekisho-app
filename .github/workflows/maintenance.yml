@@ -42,12 +42,12 @@ jobs:
           CMD=""
           if [ "$ACTION" = "down" ]; then
             if [ -n "$SECRET" ]; then
-              CMD="php8.2 artisan down --secret=\"$SECRET\""
+              CMD="php8.5 artisan down --secret=\"$SECRET\""
             else
-              CMD="php8.2 artisan down"
+              CMD="php8.5 artisan down"
             fi
           elif [ "$ACTION" = "up" ]; then
-            CMD="php8.2 artisan up"
+            CMD="php8.5 artisan up"
           elif [ "$ACTION" = "status" ]; then
             CMD="if [ -f storage/framework/down ]; then echo '【状態】メンテナンスモード稼働中 (down)'; cat storage/framework/down; echo ''; else echo '【状態】通常稼働中 (up)'; fi"
           fi

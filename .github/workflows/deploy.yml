@@ -18,7 +18,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
+          php-version: '8.5'
           coverage: none
 
       - name: Install Composer dependencies
@@ -27,7 +27,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '22'
 
       - name: Install NPM dependencies and build
         run: |
@@ -95,15 +95,15 @@ jobs:
           ssh -p ${{ secrets.XSERVER_PORT }} -o StrictHostKeyChecking=no -o PubkeyAcceptedAlgorithms=+ssh-rsa -o HostKeyAlgorithms=+ssh-rsa ${{ secrets.XSERVER_USER }}@${{ secrets.XSERVER_HOST }} << 'EOF'
             cd ~/resume-app
             # Generate config and route cache
-            php8.2 artisan cache:clear
-            php8.2 artisan config:cache
-            php8.2 artisan route:cache
-            php8.2 artisan view:cache
+            php8.5 artisan cache:clear
+            php8.5 artisan config:cache
+            php8.5 artisan route:cache
+            php8.5 artisan view:cache
             
             # Create storage symlink
             
-            php8.2 artisan storage:link || true
+            php8.5 artisan storage:link || true
             
             # Safely run migrations
-            php8.2 artisan migrate --force
+            php8.5 artisan migrate --force
           EOF

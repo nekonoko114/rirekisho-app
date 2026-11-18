@@ -48,7 +48,7 @@
               $photoUrl = '/storage/' . ltrim($resume->photo_path, '/');
             @endphp
             <div class="photo-box">
-              <img src="{{ $photoUrl }}" alt="履歴書の写真" style="width:100px; height:140px; object-fit:cover; border:1px solid #ccc;" />
+              <img src="{{ $photoUrl }}" alt="履歴書の写真" />
             </div>
           @else
             <div class="note-box">
